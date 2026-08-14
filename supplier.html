@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#123D35">
+<title>Discover Thailand Co., Ltd. — Supplier Portal</title>
+<style>
+*{-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#F3F5F8;overflow-x:hidden}
+#loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#F3F5F8;font-family:system-ui,sans-serif;color:#123D35;z-index:999}
+#err{display:none;margin:18px;padding:16px;border-radius:12px;background:#FDECEA;color:#C0392B;font-family:system-ui,sans-serif;font-size:14px;line-height:1.6}
+input,select,textarea,button{font-family:inherit}
+input,select,textarea{font-size:16px}
+</style>
+</head>
+<body>
+<div id="loader"><div style="font-size:38px">&#128279;</div><div style="margin-top:10px;font-weight:700">Supplier Portal</div><div style="margin-top:4px;font-size:12px;color:#5F7191">Discover Thailand Co., Ltd.</div></div>
+<div id="err"></div>
+<div id="root"></div>
+<script>
+/* Discover Thailand Co., Ltd. — SUPPLIER PORTAL (offline build)
+   Phase 1: file-based exchange with the Discover Thailand Operations Hub.
+   No company-wide data is ever stored here. Supplier sees only its own assigned business. */
+window.onerror = function (m) {
+  var e = document.getElementById("err");
+  if (!e) return;
+  e.style.display = "block";
+  e.innerHTML = "<b>&#9888; Loading problem:</b><br>" + m + "<br><br>Please check internet connection and refresh.";
+  var l = document.getElementById("loader");
+  if (l) l.style.display = "none";
+};
+function loadScript(urls, cb) {
+  var i = 0;
+  function next() {
+    if (i >= urls.length) { window.onerror("Could not load app libraries. Check internet."); return; }
+    var s = document.createElement("script");
+    s.src = urls[i]; s.crossOrigin = "anonymous"; s.onload = cb;
+    s.onerror = function () { i++; next(); };
+    document.head.appendChild(s);
+  }
+  next();
+}
+loadScript(
+  ["https://unpkg.com/react@18/umd/react.production.min.js", "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"],
+  function () {
+    loadScript(
+      ["https://unpkg.com/react-dom@18/umd/react-dom.production.min.js", "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"],
+      function () {
+        try { runSupplierApp(); document.getElementById("loader").style.display = "none"; }
+        catch (e) { window.onerror(e.message); }
+      }
+    );
+  }
+);
+
+function runSupplierApp() {
+  const { useState, useEffect, useMemo } = React;
+  const h = React.createElement;
+  const APP_VERSION = "SUP-1.0";
+
+  /* ─────────── palette ─────────── */
+  const C = {
+    bg: "#F3F5F8", bg2: "#E9EDF3", card: "#FFFFFF", card2: "#F7F9FC",
+    border: "#D5DDE8", text: "#16233A", sub: "#5F7191",
+    teal: "#237765", deep: "#123D35", gold: "#C8951C",
+    blue: "#2563A8", red: "#C0392B", amber: "#B87407", green: "#1E7A46",
+  };
+
+  /* ─────────── storage ─────────── */
+  const K = {
+    profile: "dtsup_profile1", jobs: "dtsup_jobs1", cat: "dtsup_cat1",
+    inv: "dtsup_inv1", vou: "dtsup_vou1", chg: "dtsup_chg1",
+    audit: "dtsup_audit1", meta: "dtsup_meta1", auth: "dtsup_auth1",
+  };
+  const ls = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { alert("⚠️ Device storage is full. Export a backup and remove old completed jobs."); return false; } };
+
+  const uuid = () => (crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0; const v = c === "x" ? r : (r & 0x3) | 0x8; return v.toString(16);
+      });
+  const nowISO = () => new Date().toISOString();
+  const today = () => new Date().toISOString().split("T")[0];
+  const fmtD = (s) => {
+    if (!s) return "";
+    const d = new Date(s + (s.length === 10 ? "T00:00:00" : ""));
+    if (isNaN(d)) return s;
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
+  const fmtDT = (s) => { if (!s) return ""; const d = new Date(s); return isNaN(d) ? s : d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
+  const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+  const paxLine = (j) => {
+    const p = [];
+    if (j.adults) p.push(j.adults + " Adult" + (j.adults > 1 ? "s" : ""));
+    if (j.children) p.push(j.children + " Child" + (j.children > 1 ? "ren" : ""));
+    if (j.infants) p.push(j.infants + " Infant" + (j.infants > 1 ? "s" : ""));
+    return p.join(" + ") || (j.pax ? j.pax + " Pax" : "");
+  };
+  const num = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? 0 : n; };
+  const money = (v, c) => (c || "THB") + " " + num(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dl = (name, obj) => {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  };
+  const slug = (s) => String(s || "SUPPLIER").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 28);
+
+  /* ─────────── status vocabulary (spec §7) ─────────── */
+  const JOB_STATUS = ["New Request", "Accepted", "Need Clarification", "Confirmed", "Ready", "Completed", "Cancelled"];
+  const STATUS_COLOR = {
+    "New Request": C.blue, Accepted: C.teal, "Need Clarification": C.amber,
+    Confirmed: C.green, Ready: C.teal, Completed: C.sub, Cancelled: C.red,
+  };
+  const INV_STATUS = ["Draft", "Submitted", "Accepted by Discover Thailand", "Returned for Correction", "Approved", "Partially Paid", "Paid", "Rejected"];
+  const SUPPLIER_EDITABLE_INV = ["Draft", "Submitted"];
+  const CATEGORIES = ["Tour", "Airport Transfer", "Transfer", "Attraction Ticket", "Restaurant", "Boat / Ferry", "Vehicle", "Guide", "Hotel", "Show", "Other"];
+
+  /* ─────────── shared UI atoms ─────────── */
+  const Btn = ({ children, onClick, variant, small, disabled, full, style }) => {
+    const bg = { primary: C.teal, dark: C.deep, gold: C.gold, red: C.red, blue: C.blue, ghost: "transparent" }[variant || "primary"];
+    return h("button", {
+      onClick, disabled,
+      style: Object.assign({
+        background: disabled ? "#B9C3D2" : bg,
+        color: variant === "ghost" ? C.teal : "#fff",
+        border: variant === "ghost" ? "1px solid " + C.border : "none",
+        borderRadius: 10, padding: small ? "8px 12px" : "11px 16px",
+        fontWeight: 700, fontSize: small ? 13 : 14, cursor: disabled ? "not-allowed" : "pointer",
+        fontFamily: "inherit", width: full ? "100%" : "auto", minHeight: small ? 36 : 44,
+      }, style || {}),
+    }, children);
+  };
+  const Card = ({ children, style }) => h("div", { style: Object.assign({ background: C.card, border: "1px solid " + C.border, borderRadius: 14, padding: 14, marginBottom: 12 }, style || {}) }, children);
+  const Field = ({ label, value, onChange, type, options, area, placeholder, hint }) =>
+    h("div", { style: { marginBottom: 12 } },
+      h("label", { style: { display: "block", fontSize: 12, fontWeight: 700, color: C.sub, marginBottom: 5 } }, label),
+      options
+        ? h("select", { value: value || "", onChange: (e) => onChange(e.target.value), style: inputStyle() }, options.map((o) => h("option", { key: o, value: o }, o || "— select —")))
+        : area
+          ? h("textarea", { value: value || "", placeholder: placeholder || "", onChange: (e) => onChange(e.target.value), rows: 3, style: Object.assign(inputStyle(), { resize: "vertical", minHeight: 74 }) })
+          : h("input", { type: type || "text", value: value == null ? "" : value, placeholder: placeholder || "", onChange: (e) => onChange(e.target.value), style: inputStyle() }),
+      hint ? h("div", { style: { fontSize: 11, color: C.sub, marginTop: 4 } }, hint) : null
+    );
+  const inputStyle = () => ({
+    width: "100%", boxSizing: "border-box", background: "#fff", color: C.text,
+    border: "1px solid " + C.border, borderRadius: 10, padding: "11px 12px",
+    fontSize: 15, fontFamily: "inherit", minHeight: 46,
+  });
+  const Tag = ({ children, color, bg }) => h("span", {
+    style: { display: "inline-block", background: bg || (color || C.teal) + "1A", color: color || C.teal, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 800, marginRight: 6, marginBottom: 4 },
+  }, children);
+  const Modal = ({ title, onClose, children, width }) =>
+    h("div", { style: { position: "fixed", inset: 0, background: "rgba(10,20,35,.55)", zIndex: 90, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 12, overflowY: "auto" }, onClick: onClose },
+      h("div", { onClick: (e) => e.stopPropagation(), style: { background: C.card, borderRadius: 16, width: "100%", maxWidth: width || 560, margin: "24px 0", border: "1px solid " + C.border } },
+        h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid " + C.border, position: "sticky", top: 0, background: C.card, borderRadius: "16px 16px 0 0" } },
+          h("b", { style: { fontSize: 16 } }, title),
+          h("button", { onClick: onClose, style: { background: "none", border: "none", fontSize: 22, cursor: "pointer", color: C.sub } }, "×")),
+        h("div", { style: { padding: 16 } }, children)));
+  const Empty = ({ text }) => h("div", { style: { textAlign: "center", color: C.sub, padding: "28px 10px", fontSize: 14 } }, text);
+
+  /* ═══════════════ APP ═══════════════ */
+  function App() {
+    const [profile, setProfile] = useState(() => ls(K.profile, null));
+    const [authed, setAuthed] = useState(() => !!ls(K.auth, false));
+    const [jobs, setJobs] = useState(() => ls(K.jobs, []));
+    const [cat, setCat] = useState(() => ls(K.cat, []));
+    const [invoices, setInvoices] = useState(() => ls(K.inv, []));
+    const [vouchers, setVouchers] = useState(() => ls(K.vou, []));
+    const [changes, setChanges] = useState(() => ls(K.chg, []));
+    const [audit, setAudit] = useState(() => ls(K.audit, []));
+    const [meta, setMeta] = useState(() => ls(K.meta, { packages: [], backups: [], lastBackupAt: "", changesSince: 0 }));
+    const [page, setPage] = useState("dashboard");
+    const [toast, setToast] = useState("");
+
+    useEffect(() => { save(K.profile, profile); }, [profile]);
+    useEffect(() => { save(K.jobs, jobs); }, [jobs]);
+    useEffect(() => { save(K.cat, cat); }, [cat]);
+    useEffect(() => { save(K.inv, invoices); }, [invoices]);
+    useEffect(() => { save(K.vou, vouchers); }, [vouchers]);
+    useEffect(() => { save(K.chg, changes); }, [changes]);
+    useEffect(() => { save(K.audit, audit.slice(-600)); }, [audit]);
+    useEffect(() => { save(K.meta, meta); }, [meta]);
+    useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(""), 2600); return () => clearTimeout(t); }, [toast]);
+
+    const log = (action, detail, ref) =>
+      setAudit((a) => [...a, { id: uuid(), at: nowISO(), by: profile ? profile.name : "Supplier", action, detail: detail || "", ref: ref || "" }]);
+    const bump = () => setMeta((m) => ({ ...m, changesSince: (m.changesSince || 0) + 1 }));
+
+    /* ── package import (spec §5) ── */
+    const importPackage = (text, fileName) => {
+      let pkg;
+      try { pkg = JSON.parse(text); } catch { return { error: "This file is not a valid Discover Thailand package (unreadable JSON)." }; }
+      if (!pkg || pkg.type !== "DT-SUPPLIER-PACKAGE") return { error: "Wrong file type. Please import the Supplier Booking Package sent by Discover Thailand." };
+      if (!pkg.supplier || !pkg.supplier.supplierId) return { error: "Package has no supplier identity." };
+      if (profile && profile.supplierId && profile.supplierId !== pkg.supplier.supplierId)
+        return { error: "This package belongs to " + (pkg.supplier.name || pkg.supplier.supplierId) + ". It cannot be opened in this portal." };
+      const already = (meta.packages || []).find((p) => p.packageId === pkg.packageId);
+      const rows = pkg.services || [];
+      let added = 0, updated = 0, same = 0;
+      const next = [...jobs];
+      rows.forEach((r) => {
+        const i = next.findIndex((j) => (r.uid && j.uid === r.uid) || (j.bookingId === r.bookingId && j.serviceId === r.serviceId));
+        if (i < 0) {
+          next.push(Object.assign({}, r, {
+            uid: r.uid || uuid(), importedAt: nowISO(), packageId: pkg.packageId,
+            supStatus: "New Request", confNumber: "", confirmedDate: "", confirmedBy: "",
+            supNotes: "", attachmentName: "", ver: 1, updatedAt: nowISO(),
+          }));
+          added++;
+        } else {
+          const cur = next[i];
+          const incomingVer = r.version || 1;
+          if (already && incomingVer <= (cur.version || 1)) { same++; return; }
+          if (incomingVer < (cur.version || 1)) { same++; return; }
+          const changedFields = [];
+          ["serviceName", "date", "time", "pickup", "dropoff", "adults", "children", "infants", "pax", "vehicle", "guide", "notes", "details", "guest", "hotel", "destination", "category", "travelStart", "travelEnd"]
+            .forEach((f) => { if ((r[f] ?? "") !== (cur[f] ?? "")) changedFields.push(f); });
+          if (!changedFields.length) { same++; return; }
+          next[i] = Object.assign({}, cur, r, {
+            uid: cur.uid, supStatus: cur.supStatus, confNumber: cur.confNumber,
+            confirmedDate: cur.confirmedDate, confirmedBy: cur.confirmedBy, supNotes: cur.supNotes,
+            version: incomingVer, packageId: pkg.packageId, updatedAt: nowISO(),
+            lastChanged: changedFields.join(", "),
+          });
+          updated++;
+        }
+      });
+      setJobs(next);
+      if (!profile) {
+        setProfile({
+          supplierId: pkg.supplier.supplierId, uid: pkg.supplier.supplierUid || uuid(),
+          name: pkg.supplier.name || pkg.supplier.supplierId, accessCode: pkg.supplier.accessCode || "",
+          contact: pkg.supplier.contact || "", status: pkg.supplier.status || "Active", createdAt: nowISO(),
+        });
+      }
+      setMeta((m) => ({
+        ...m,
+        packages: [...(m.packages || []), { packageId: pkg.packageId, at: nowISO(), fileName, records: rows.length, added, updated, same }].slice(-60),
+      }));
+      log("Import File", `${fileName} — ${added} new, ${updated} updated, ${same} already imported`, pkg.packageId);
+      bump();
+      return { added, updated, same, already: !!already, total: rows.length, supplier: pkg.supplier.name };
+    };
+
+    /* ── supplier backup export (spec §11) ── */
+    const exportBackup = () => {
+      if (!profile) return;
+      const backupId = "DTSBK-" + Date.now().toString(36).toUpperCase();
+      const payload = {
+        type: "DT-SUPPLIER-BACKUP", backupId, appVersion: APP_VERSION,
+        createdAt: nowISO(), createdBy: profile.contact || profile.name,
+        supplier: { supplierId: profile.supplierId, supplierUid: profile.uid, name: profile.name },
+        lastSyncAt: meta.lastBackupAt || "",
+        responses: jobs.map((j) => ({
+          uid: j.uid, bookingUid: j.bookingUid, bookingId: j.bookingId, serviceId: j.serviceId,
+          serviceName: j.serviceName, date: j.date, supStatus: j.supStatus, confNumber: j.confNumber,
+          confirmedDate: j.confirmedDate, confirmedBy: j.confirmedBy, notes: j.supNotes,
+          attachmentName: j.attachmentName, driver: j.supDriver, vehicle: j.supVehicle, guideName: j.supGuide,
+          ver: j.ver || 1, updatedAt: j.updatedAt, sourceVersion: j.version || 1,
+        })),
+        services: cat.map((s) => Object.assign({}, s, { proposed: true })),
+        invoices: invoices.filter((i) => i.status !== "Draft"),
+        vouchers: vouchers,
+        changeRequests: changes.filter((c) => c.status === "Submitted"),
+        audit: audit.slice(-200),
+        recordCount: jobs.length + cat.length + invoices.length + vouchers.length + changes.length,
+      };
+      const name = `DT-SUPPLIER-BACKUP-${slug(profile.name)}-${today()}.json`;
+      dl(name, payload);
+      setMeta((m) => ({ ...m, lastBackupAt: nowISO(), changesSince: 0, backups: [...(m.backups || []), { backupId, at: nowISO(), records: payload.recordCount }].slice(-40) }));
+      log("Backup Exported", `${name} — ${payload.recordCount} records`, backupId);
+      setToast("✅ Backup file created. Send it to Discover Thailand.");
+    };
+
+    /* ── job mutations ── */
+    const updJob = (uid, patch, logLine) => {
+      setJobs((js) => js.map((j) => (j.uid === uid ? Object.assign({}, j, patch, { ver: (j.ver || 1) + 1, updatedAt: nowISO() }) : j)));
+      if (logLine) log(logLine.action, logLine.detail, uid);
+      bump();
+    };
+
+    if (!profile) return h(FirstRun, { importPackage, C });
+    if (profile.status === "Suspended" || profile.status === "Archived")
+      return h("div", { style: { padding: 30, textAlign: "center", fontFamily: "system-ui" } },
+        h("h2", null, "Account " + profile.status),
+        h("p", { style: { color: C.sub } }, "This supplier portal has been " + profile.status.toLowerCase() + " by Discover Thailand. Please contact your account manager."));
+    if (!authed) return h(Lock, { profile, onOk: () => { setAuthed(true); save(K.auth, true); log("Login", "Portal opened"); }, C });
+
+    const ctx = { profile, setProfile, jobs, setJobs, updJob, cat, setCat, invoices, setInvoices, vouchers, setVouchers, changes, setChanges, audit, log, meta, setMeta, bump, importPackage, exportBackup, setToast, setPage, C };
+
+    const nav = [
+      ["dashboard", "🏠", "Home"], ["jobs", "📋", "Bookings"], ["catalog", "🧰", "Services"],
+      ["invoices", "🧾", "Invoices"], ["vouchers", "📄", "Vouchers"], ["backup", "💾", "Backup"],
+    ];
+    const needBackup = (meta.changesSince || 0) > 0 &&
+      (!meta.lastBackupAt || daysBetween(meta.lastBackupAt, nowISO()) >= 1);
+
+    return h("div", { style: { minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Inter','Segoe UI',system-ui,sans-serif", paddingBottom: 78 } },
+      h("div", { style: { background: C.deep, color: "#fff", padding: "12px 14px", position: "sticky", top: 0, zIndex: 40 } },
+        h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 } },
+          h("div", null,
+            h("div", { style: { fontSize: 15, fontWeight: 800 } }, "🔗 Supplier Portal"),
+            h("div", { style: { fontSize: 11, opacity: .8 } }, profile.name + " • " + profile.supplierId)),
+          h("button", { onClick: () => { setAuthed(false); save(K.auth, false); }, style: { background: "rgba(255,255,255,.14)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" } }, "Lock"))),
+      needBackup ? h("div", { style: { background: C.amber + "1F", color: C.amber, padding: "9px 14px", fontSize: 12.5, fontWeight: 700 } },
+        `⚠️ Backup recommended — ${meta.changesSince} change${meta.changesSince > 1 ? "s" : ""} not yet sent to Discover Thailand.`) : null,
+      h("div", { style: { padding: 14, maxWidth: 880, margin: "0 auto" } },
+        page === "dashboard" && h(Dashboard, ctx),
+        page === "jobs" && h(JobsPage, ctx),
+        page === "catalog" && h(CatalogPage, ctx),
+        page === "invoices" && h(InvoicePage, ctx),
+        page === "vouchers" && h(VoucherPage, ctx),
+        page === "backup" && h(BackupPage, ctx)),
+      toast ? h("div", { style: { position: "fixed", bottom: 86, left: 14, right: 14, background: C.deep, color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 13.5, fontWeight: 600, zIndex: 80, maxWidth: 600, margin: "0 auto" } }, toast) : null,
+      h("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: C.card, borderTop: "1px solid " + C.border, display: "flex", zIndex: 50 } },
+        nav.map(([id, icon, label]) =>
+          h("button", { key: id, onClick: () => setPage(id),
+            style: { flex: 1, background: "none", border: "none", padding: "9px 2px 10px", cursor: "pointer", color: page === id ? C.teal : C.sub, fontFamily: "inherit", minHeight: 56 } },
+            h("div", { style: { fontSize: 19 } }, icon),
+            h("div", { style: { fontSize: 10.5, fontWeight: 700 } }, label)))));
+  }
+
+  /* ═══════════════ FIRST RUN ═══════════════ */
+  function FirstRun({ importPackage }) {
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState("");
+    const pick = (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      setBusy(true); setErr("");
+      const r = new FileReader();
+      r.onload = () => { const res = importPackage(String(r.result), f.name); setBusy(false); if (res.error) setErr(res.error); };
+      r.onerror = () => { setBusy(false); setErr("Could not read the file."); };
+      r.readAsText(f);
+    };
+    return h("div", { style: { minHeight: "100vh", background: C.bg, fontFamily: "'Inter',system-ui,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 } },
+      h("div", { style: { maxWidth: 460, width: "100%" } },
+        h("div", { style: { textAlign: "center", marginBottom: 18 } },
+          h("div", { style: { fontSize: 34 } }, "🔗"),
+          h("h2", { style: { margin: "8px 0 4px", color: C.deep } }, "Supplier Portal"),
+          h("div", { style: { color: C.sub, fontSize: 13.5 } }, "Discover Thailand Co., Ltd.")),
+        h(Card, null,
+          h("b", { style: { fontSize: 15 } }, "Start with your first booking package"),
+          h("p", { style: { color: C.sub, fontSize: 13, lineHeight: 1.55 } },
+            "Discover Thailand will send you a Supplier Booking Package file. Import it here to set up this portal. Your portal only ever holds your own assigned business — never the Discover Thailand database."),
+          h("label", { style: { display: "block" } },
+            h("input", { type: "file", accept: ".json,application/json", onChange: pick, style: { display: "none" } }),
+            h("div", { style: { background: C.teal, color: "#fff", borderRadius: 10, padding: "13px", textAlign: "center", fontWeight: 700, cursor: "pointer" } }, busy ? "Reading…" : "📥 Import Booking File")),
+          err ? h("div", { style: { marginTop: 12, background: C.red + "14", color: C.red, padding: 11, borderRadius: 10, fontSize: 13, fontWeight: 600 } }, err) : null)));
+  }
+
+  /* ═══════════════ LOCK ═══════════════ */
+  function Lock({ profile, onOk }) {
+    const [v, setV] = useState(""); const [e, setE] = useState("");
+    const go = () => {
+      if (!profile.accessCode || v.trim() === profile.accessCode) onOk();
+      else setE("❌ Wrong access code. Please check with Discover Thailand.");
+    };
+    return h("div", { style: { minHeight: "100vh", background: C.bg, fontFamily: "'Inter',system-ui,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 } },
+      h("div", { style: { maxWidth: 400, width: "100%" } },
+        h("div", { style: { textAlign: "center", marginBottom: 16 } },
+          h("div", { style: { fontSize: 32 } }, "🔒"),
+          h("h3", { style: { margin: "8px 0 2px", color: C.deep } }, profile.name),
+          h("div", { style: { color: C.sub, fontSize: 12.5 } }, profile.supplierId)),
+        h(Card, null,
+          h(Field, { label: "Access code", value: v, onChange: setV, type: "password", hint: profile.accessCode ? "" : "No code set — press Open." }),
+          e ? h("div", { style: { color: C.red, fontSize: 13, fontWeight: 600, marginBottom: 10 } }, e) : null,
+          h(Btn, { full: true, onClick: go }, "Open Portal"))));
+  }
+
+  /* ═══════════════ DASHBOARD (spec §6) ═══════════════ */
+  function Dashboard(ctx) {
+    const { jobs, invoices, meta, setPage, C } = ctx;
+    const t = today();
+    const week = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+    const bucket = {
+      "New Booking Requests": jobs.filter((j) => j.supStatus === "New Request"),
+      "Today's Services": jobs.filter((j) => j.date === t && j.supStatus !== "Cancelled"),
+      "This Week": jobs.filter((j) => j.date > t && j.date <= week && j.supStatus !== "Cancelled"),
+      "Upcoming Bookings": jobs.filter((j) => j.date > week && j.supStatus !== "Cancelled"),
+      "Awaiting Confirmation": jobs.filter((j) => ["Accepted", "Need Clarification"].includes(j.supStatus)),
+      Confirmed: jobs.filter((j) => ["Confirmed", "Ready"].includes(j.supStatus)),
+      Completed: jobs.filter((j) => j.supStatus === "Completed"),
+      "Invoice Not Created": jobs.filter((j) => ["Confirmed", "Ready", "Completed"].includes(j.supStatus) && !invoices.some((i) => (i.items || []).some((it) => it.jobUid === j.uid))),
+      "Invoice Submitted": invoices.filter((i) => i.status !== "Draft"),
+    };
+    const tile = (label, arr, color) =>
+      h("button", { key: label, onClick: () => ctx.setPage(label === "Invoice Submitted" ? "invoices" : "jobs"),
+        style: { background: C.card, border: "1px solid " + C.border, borderRadius: 14, padding: "13px 12px", textAlign: "left", cursor: "pointer", fontFamily: "inherit", color: C.text } },
+        h("div", { style: { fontSize: 25, fontWeight: 800, color: color || C.deep } }, arr.length),
+        h("div", { style: { fontSize: 12, color: C.sub, fontWeight: 700, marginTop: 2 } }, label));
+    return h("div", null,
+      h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 10, marginBottom: 14 } },
+        tile("New Booking Requests", bucket["New Booking Requests"], C.blue),
+        tile("Today's Services", bucket["Today's Services"], C.teal),
+        tile("This Week", bucket["This Week"]),
+        tile("Upcoming Bookings", bucket["Upcoming Bookings"]),
+        tile("Awaiting Confirmation", bucket["Awaiting Confirmation"], C.amber),
+        tile("Confirmed", bucket.Confirmed, C.green),
+        tile("Completed", bucket.Completed),
+        tile("Invoice Not Created", bucket["Invoice Not Created"], C.red),
+        tile("Invoice Submitted", bucket["Invoice Submitted"], C.teal)),
+      h(Card, null,
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+          h("b", null, "Sync status"),
+          h(Tag, { color: (meta.changesSince || 0) ? C.amber : C.green }, (meta.changesSince || 0) ? meta.changesSince + " unsent change(s)" : "Up to date")),
+        h("div", { style: { fontSize: 13, color: C.sub, lineHeight: 1.7 } },
+          h("div", null, "Last backup sent: ", h("b", { style: { color: C.text } }, meta.lastBackupAt ? fmtDT(meta.lastBackupAt) : "never")),
+          h("div", null, "Packages imported: ", h("b", { style: { color: C.text } }, (meta.packages || []).length))),
+        h("div", { style: { display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" } },
+          h(Btn, { small: true, onClick: () => setPage("backup") }, "💾 Import / Backup"),
+          h(Btn, { small: true, variant: "ghost", onClick: () => setPage("jobs") }, "📋 Open bookings"))),
+      h("div", { style: { fontSize: 11.5, color: C.sub, textAlign: "center", padding: "6px 10px 0", lineHeight: 1.6 } },
+        "This portal shows only your own assigned services. Discover Thailand client prices, agent details and other suppliers' data are never included."));
+  }
+
+  /* ═══════════════ BOOKINGS / JOBS (spec §6, §7, §15) ═══════════════ */
+  function JobsPage(ctx) {
+    const { jobs, updJob, log, changes, setChanges, bump, setToast, C } = ctx;
+    const [filter, setFilter] = useState("All");
+    const [q, setQ] = useState("");
+    const [openId, setOpenId] = useState(null);
+    const [modal, setModal] = useState(null); // {type, job}
+    const filters = ["All", "New Request", "Accepted", "Confirmed", "Ready", "Completed", "Need Clarification", "Cancelled"];
+    const list = jobs
+      .filter((j) => (filter === "All" ? true : j.supStatus === filter))
+      .filter((j) => {
+        const s = q.trim().toLowerCase();
+        if (!s) return true;
+        return [j.bookingId, j.guest, j.serviceName, j.date, j.confNumber, j.pickup].some((v) => String(v || "").toLowerCase().includes(s));
+      })
+      .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+
+    const setStatus = (j, st, extra) => {
+      updJob(j.uid, Object.assign({ supStatus: st }, extra || {}), { action: "Status Updated", detail: `${j.bookingId} • ${j.serviceName} → ${st}` });
+      setToast("Status updated to " + st);
+    };
+
+    return h("div", null,
+      h("input", { value: q, placeholder: "🔍 Search booking, guest, service…", onChange: (e) => setQ(e.target.value), style: Object.assign(inputStyle(), { marginBottom: 10 }) }),
+      h("div", { style: { display: "flex", gap: 7, overflowX: "auto", paddingBottom: 8, marginBottom: 4 } },
+        filters.map((f) => h("button", { key: f, onClick: () => setFilter(f),
+          style: { whiteSpace: "nowrap", background: filter === f ? C.teal : C.card, color: filter === f ? "#fff" : C.sub, border: "1px solid " + (filter === f ? C.teal : C.border), borderRadius: 20, padding: "7px 13px", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" } }, f))),
+      !list.length ? h(Empty, { text: "No bookings in this view. Import a booking package from the Backup tab." }) : null,
+      list.map((j) =>
+        h(Card, { key: j.uid, style: { padding: 0, overflow: "hidden" } },
+          h("div", { onClick: () => setOpenId(openId === j.uid ? null : j.uid), style: { padding: 14, cursor: "pointer" } },
+            h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" } },
+              h("div", null,
+                h("div", { style: { fontSize: 12, fontWeight: 800, color: C.sub, letterSpacing: .3 } }, j.bookingId),
+                h("div", { style: { fontSize: 15.5, fontWeight: 800, marginTop: 2 } }, j.serviceName || "Service"),
+                h("div", { style: { fontSize: 13, color: C.sub, marginTop: 3 } }, "Guest: " + (j.guest || "—"))),
+              h(Tag, { color: STATUS_COLOR[j.supStatus] || C.sub }, j.supStatus)),
+            h("div", { style: { display: "flex", flexWrap: "wrap", gap: 10, marginTop: 9, fontSize: 12.5, color: C.text } },
+              h("span", null, "📅 " + fmtD(j.date) + (j.time ? " • " + j.time : "")),
+              h("span", null, "👥 " + paxLine(j)),
+              j.pickup ? h("span", null, "📍 " + j.pickup) : null),
+            j.lastChanged ? h("div", { style: { marginTop: 8, fontSize: 11.5, color: C.amber, fontWeight: 700 } }, "⟳ Updated by Discover Thailand: " + j.lastChanged) : null,
+            j.confNumber ? h("div", { style: { marginTop: 7, fontSize: 12, color: C.green, fontWeight: 700 } }, "✔ Confirmation " + j.confNumber) : null),
+          openId === j.uid
+            ? h("div", { style: { borderTop: "1px solid " + C.border, background: C.card2, padding: 14 } },
+                h(KV, { k: "Travel dates", v: (j.travelStart ? fmtD(j.travelStart) : "") + (j.travelEnd ? " → " + fmtD(j.travelEnd) : "") }),
+                h(KV, { k: "Category", v: j.category }),
+                h(KV, { k: "Pick-up", v: j.pickup }), h(KV, { k: "Drop-off", v: j.dropoff }),
+                h(KV, { k: "Hotel / area", v: [j.hotel, j.destination].filter(Boolean).join(" • ") }),
+                h(KV, { k: "Vehicle required", v: j.vehicle }), h(KV, { k: "Guide required", v: j.guide }),
+                h(KV, { k: "Service details", v: j.details }),
+                h(KV, { k: "Special request", v: j.notes }),
+                h(KV, { k: "Your notes", v: j.supNotes }),
+                h("div", { style: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 } },
+                  j.supStatus === "New Request" ? h(Btn, { small: true, onClick: () => setStatus(j, "Accepted") }, "✔ Accept") : null,
+                  h(Btn, { small: true, variant: "ghost", onClick: () => setModal({ type: "change", job: j }) }, "✎ Request Change"),
+                  h(Btn, { small: true, variant: "blue", onClick: () => setModal({ type: "conf", job: j }) }, "＃ Add Confirmation"),
+                  h(Btn, { small: true, variant: "ghost", onClick: () => setModal({ type: "update", job: j }) }, "🛠 Update Service"),
+                  h(Btn, { small: true, variant: "gold", onClick: () => { ctx.setPage("vouchers"); ctx.setToast("Choose ➕ Create Voucher and pick " + j.bookingId); } }, "📄 Create Voucher"),
+                  h(Btn, { small: true, variant: "dark", onClick: () => { ctx.setPage("invoices"); ctx.setToast("Choose ➕ New Invoice and pick " + j.bookingId); } }, "🧾 Create Invoice")),
+                h("div", { style: { marginTop: 12 } },
+                  h("label", { style: { fontSize: 12, fontWeight: 700, color: C.sub } }, "Status"),
+                  h("select", { value: j.supStatus, onChange: (e) => setStatus(j, e.target.value), style: Object.assign(inputStyle(), { marginTop: 5 }) },
+                    JOB_STATUS.map((s) => h("option", { key: s, value: s }, s)))))
+            : null)),
+      modal && modal.type === "conf" ? h(ConfModal, { job: modal.job, onClose: () => setModal(null), updJob, setToast: ctx.setToast }) : null,
+      modal && modal.type === "update" ? h(UpdateModal, { job: modal.job, onClose: () => setModal(null), updJob, setToast: ctx.setToast }) : null,
+      modal && modal.type === "change" ? h(ChangeModal, { job: modal.job, onClose: () => setModal(null), changes, setChanges, log, bump, setToast: ctx.setToast }) : null);
+  }
+  const KV = ({ k, v }) => (!v && v !== 0) ? null :
+    h("div", { style: { display: "flex", gap: 10, padding: "5px 0", fontSize: 13, borderBottom: "1px dashed " + C.border } },
+      h("div", { style: { width: 128, color: C.sub, fontWeight: 700, flexShrink: 0 } }, k),
+      h("div", { style: { flex: 1, whiteSpace: "pre-wrap" } }, String(v)));
+
+  function ConfModal({ job, onClose, updJob, setToast }) {
+    const [f, setF] = useState({ confNumber: job.confNumber || "", confirmedDate: job.confirmedDate || today(), confirmedBy: job.confirmedBy || "", supNotes: job.supNotes || "", attachmentName: job.attachmentName || "" });
+    const sf = (k) => (v) => setF((x) => ({ ...x, [k]: v }));
+    return h(Modal, { title: "＃ Supplier Confirmation", onClose },
+      h(Field, { label: "Confirmation number", value: f.confNumber, onChange: sf("confNumber"), placeholder: "e.g. CI-1234" }),
+      h(Field, { label: "Confirmed date", value: f.confirmedDate, onChange: sf("confirmedDate"), type: "date" }),
+      h(Field, { label: "Confirmed by", value: f.confirmedBy, onChange: sf("confirmedBy"), placeholder: "Your staff name" }),
+      h(Field, { label: "Notes", value: f.supNotes, onChange: sf("supNotes"), area: true }),
+      h(Field, { label: "Attachment reference (file name)", value: f.attachmentName, onChange: sf("attachmentName"), hint: "Send the actual file to Discover Thailand by email or WhatsApp." }),
+      h(Btn, { full: true, disabled: !f.confNumber.trim(),
+        onClick: () => {
+          updJob(job.uid, Object.assign({}, f, { supStatus: "Confirmed" }), { action: "Confirmation Added", detail: `${job.bookingId} • ${job.serviceName} • ${f.confNumber}` });
+          setToast("Confirmation saved — status set to Confirmed."); onClose();
+        } }, "Save confirmation"));
+  }
+
+  function UpdateModal({ job, onClose, updJob, setToast }) {
+    const [f, setF] = useState({ supVehicle: job.supVehicle || "", supDriver: job.supDriver || "", supDriverPhone: job.supDriverPhone || "", supGuide: job.supGuide || "", supGuidePhone: job.supGuidePhone || "", supPickupTime: job.supPickupTime || "", supNotes: job.supNotes || "" });
+    const sf = (k) => (v) => setF((x) => ({ ...x, [k]: v }));
+    return h(Modal, { title: "🛠 Update Service (your operational details)", onClose },
+      h("div", { style: { background: C.bg2, borderRadius: 10, padding: 10, fontSize: 12.5, color: C.sub, marginBottom: 12 } },
+        "These are your own operational fields. Discover Thailand booking data (guest, pax, price) can only be changed with a Request Change."),
+      h(Field, { label: "Vehicle assigned", value: f.supVehicle, onChange: sf("supVehicle") }),
+      h(Field, { label: "Driver name", value: f.supDriver, onChange: sf("supDriver") }),
+      h(Field, { label: "Driver phone", value: f.supDriverPhone, onChange: sf("supDriverPhone") }),
+      h(Field, { label: "Guide name", value: f.supGuide, onChange: sf("supGuide") }),
+      h(Field, { label: "Guide phone", value: f.supGuidePhone, onChange: sf("supGuidePhone") }),
+      h(Field, { label: "Confirmed pick-up time", value: f.supPickupTime, onChange: sf("supPickupTime"), type: "time" }),
+      h(Field, { label: "Operational notes", value: f.supNotes, onChange: sf("supNotes"), area: true }),
+      h(Btn, { full: true, onClick: () => { updJob(job.uid, f, { action: "Service Updated", detail: `${job.bookingId} • ${job.serviceName}` }); setToast("Service details updated."); onClose(); } }, "Save"));
+  }
+
+  function ChangeModal({ job, onClose, changes, setChanges, log, bump, setToast }) {
+    const FIELDS = [["pax", "PAX / guest count"], ["date", "Service date"], ["time", "Service time"], ["pickup", "Pick-up"], ["dropoff", "Drop-off"], ["serviceName", "Service"], ["other", "Other"]];
+    const [field, setField] = useState("pax");
+    const [req, setReq] = useState(""); const [reason, setReason] = useState("");
+    const oldVal = field === "pax" ? paxLine(job) : field === "other" ? "" : String(job[field] || "");
+    return h(Modal, { title: "✎ Request Change", onClose },
+      h("div", { style: { background: C.bg2, borderRadius: 10, padding: 10, fontSize: 12.5, color: C.sub, marginBottom: 12 } },
+        "You cannot edit Discover Thailand master data directly. Send a change request — the Manager reviews and accepts or rejects it."),
+      h("label", { style: { display: "block", fontSize: 12, fontWeight: 700, color: C.sub, marginBottom: 5 } }, "Field"),
+      h("select", { value: field, onChange: (e) => setField(e.target.value), style: Object.assign(inputStyle(), { marginBottom: 12 }) },
+        FIELDS.map((f) => h("option", { key: f[0], value: f[0] }, f[1]))),
+      h(Field, { label: "Current value (as received)", value: oldVal, onChange: () => {} }),
+      h(Field, { label: "Requested value", value: req, onChange: setReq, placeholder: "e.g. 20" }),
+      h(Field, { label: "Reason", value: reason, onChange: setReason, area: true, placeholder: "e.g. Updated guest list received" }),
+      h(Btn, { full: true, disabled: !req.trim() || !reason.trim(),
+        onClick: () => {
+          const rec = { id: uuid(), at: nowISO(), status: "Submitted", jobUid: job.uid, bookingUid: job.bookingUid, bookingId: job.bookingId, serviceId: job.serviceId, serviceName: job.serviceName, field, oldValue: oldVal, requestedValue: req.trim(), reason: reason.trim() };
+          setChanges([...changes, rec]);
+          log("Change Requested", `${job.bookingId} • ${field}: ${oldVal} → ${req.trim()}`, job.uid);
+          bump(); setToast("Change request queued — it will travel in your next backup."); onClose();
+        } }, "Submit request"),
+      changes.filter((c) => c.jobUid === job.uid).length
+        ? h("div", { style: { marginTop: 14 } },
+            h("b", { style: { fontSize: 13 } }, "Previous requests"),
+            changes.filter((c) => c.jobUid === job.uid).map((c) =>
+              h("div", { key: c.id, style: { fontSize: 12.5, color: C.sub, padding: "7px 0", borderBottom: "1px dashed " + C.border } },
+                `${fmtD(c.at.split("T")[0])} • ${c.field}: ${c.oldValue || "—"} → ${c.requestedValue} (${c.status})`)))
+        : null);
+  }
+
+  /* ═══════════════ SERVICE CATALOGUE (spec §8) ═══════════════ */
+  function CatalogPage(ctx) {
+    const { cat, setCat, log, bump, setToast, C } = ctx;
+    const blank = { name: "", category: "Tour", destination: "", description: "", inclusions: "", exclusions: "", timing: "", pickupInfo: "", rate: "", childRate: "", currency: "THB", validFrom: "", validTo: "", minPax: "", status: "Active" };
+    const [form, setForm] = useState(null);
+    const sf = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+    const saveSvc = () => {
+      const rec = Object.assign({}, form, { uid: form.uid || uuid(), updatedAt: nowISO(), proposedState: form.proposedState || "Supplier Proposed Service", ver: (form.ver || 0) + 1 });
+      setCat(form.uid ? cat.map((s) => (s.uid === form.uid ? rec : s)) : [...cat, rec]);
+      log(form.uid ? "Service Changed" : "Service Added", rec.name); bump();
+      setToast(form.uid ? "Service updated." : "Service added — it will be sent to Discover Thailand for approval.");
+      setForm(null);
+    };
+    return h("div", null,
+      h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
+        h("b", { style: { fontSize: 16 } }, "🧰 My Service Catalogue"),
+        h(Btn, { small: true, onClick: () => setForm(blank) }, "➕ Add Service")),
+      h("div", { style: { fontSize: 12.5, color: C.sub, marginBottom: 12, lineHeight: 1.6 } },
+        "Rates here are your supplier rates only. They are never the Discover Thailand client selling price. New services are sent as ",
+        h("b", null, "Supplier Proposed Service"), " and take effect only after the Manager approves them."),
+      !cat.length ? h(Empty, { text: "No services yet. Add the tours, transfers, tickets or vehicles you offer." }) : null,
+      cat.map((s) =>
+        h(Card, { key: s.uid },
+          h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8 } },
+            h("div", null,
+              h("b", { style: { fontSize: 15 } }, s.name),
+              h("div", { style: { fontSize: 12.5, color: C.sub, marginTop: 3 } }, [s.category, s.destination].filter(Boolean).join(" • "))),
+            h(Tag, { color: s.status === "Active" ? C.green : C.sub }, s.status)),
+          h("div", { style: { marginTop: 8, fontSize: 13 } },
+            s.rate ? h("span", { style: { fontWeight: 700 } }, "Adult " + money(s.rate, s.currency)) : null,
+            s.childRate ? h("span", { style: { marginLeft: 10 } }, "Child " + money(s.childRate, s.currency)) : null),
+          h("div", { style: { marginTop: 6 } }, h(Tag, { color: C.amber }, s.proposedState || "Supplier Proposed Service")),
+          h("div", { style: { marginTop: 10, display: "flex", gap: 8 } },
+            h(Btn, { small: true, variant: "ghost", onClick: () => setForm(s) }, "✎ Edit"))),
+      ),
+      form ? h(Modal, { title: form.uid ? "✎ Edit Service" : "➕ Add Service", onClose: () => setForm(null), width: 600 },
+        h(Field, { label: "Service name", value: form.name, onChange: sf("name") }),
+        h(Field, { label: "Category", value: form.category, onChange: sf("category"), options: CATEGORIES }),
+        h(Field, { label: "Destination", value: form.destination, onChange: sf("destination") }),
+        h(Field, { label: "Description", value: form.description, onChange: sf("description"), area: true }),
+        h(Field, { label: "Inclusions", value: form.inclusions, onChange: sf("inclusions"), area: true }),
+        h(Field, { label: "Exclusions", value: form.exclusions, onChange: sf("exclusions"), area: true }),
+        h(Field, { label: "Default timing", value: form.timing, onChange: sf("timing"), placeholder: "e.g. 09:00 – 16:00" }),
+        h(Field, { label: "Pick-up info", value: form.pickupInfo, onChange: sf("pickupInfo") }),
+        h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          h(Field, { label: "Supplier rate (adult)", value: form.rate, onChange: sf("rate"), type: "number" }),
+          h(Field, { label: "Supplier rate (child)", value: form.childRate, onChange: sf("childRate"), type: "number" })),
+        h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          h(Field, { label: "Valid from", value: form.validFrom, onChange: sf("validFrom"), type: "date" }),
+          h(Field, { label: "Valid to", value: form.validTo, onChange: sf("validTo"), type: "date" })),
+        h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          h(Field, { label: "Minimum pax", value: form.minPax, onChange: sf("minPax"), type: "number" }),
+          h(Field, { label: "Status", value: form.status, onChange: sf("status"), options: ["Active", "Inactive"] })),
+        h(Btn, { full: true, disabled: !String(form.name || "").trim(), onClick: saveSvc }, "Save service")) : null);
+  }
+
+  /* ═══════════════ INVOICES (spec §9) ═══════════════ */
+  function InvoicePage(ctx) {
+    const { invoices, setInvoices, jobs, profile, log, bump, setToast, C } = ctx;
+    const [form, setForm] = useState(null);
+    const blank = () => ({ uid: uuid(), invoiceNumber: "", invoiceDate: today(), dueDate: "", currency: "THB", vat: "", notes: "", attachmentName: "", status: "Draft", items: [] });
+    const sf = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+    const eligible = jobs.filter((j) => j.supStatus !== "Cancelled");
+    const subtotal = (inv) => (inv.items || []).reduce((s, it) => s + num(it.qty) * num(it.rate), 0);
+    const total = (inv) => subtotal(inv) + num(inv.vat);
+    const addItem = () => setForm((f) => ({ ...f, items: [...(f.items || []), { id: uuid(), jobUid: "", desc: "", serviceDate: "", qty: 1, rate: "" }] }));
+    const updItem = (id, k, v) => setForm((f) => ({ ...f, items: f.items.map((it) => (it.id === id ? { ...it, [k]: v } : it)) }));
+    const pickJob = (id, uid) => {
+      const j = jobs.find((x) => x.uid === uid);
+      setForm((f) => ({ ...f, items: f.items.map((it) => it.id === id ? { ...it, jobUid: uid, desc: j ? `${j.bookingId} • ${j.serviceName}` : "", serviceDate: j ? j.date : "", qty: j ? (num(j.adults) + num(j.children) || 1) : 1 } : it) }));
+    };
+    const saveInv = (status) => {
+      const rec = Object.assign({}, form, {
+        status, supplierId: profile.supplierId, supplierName: profile.name,
+        subtotal: subtotal(form), total: total(form), updatedAt: nowISO(), ver: (form.ver || 0) + 1,
+        submittedAt: status === "Submitted" ? nowISO() : form.submittedAt || "",
+      });
+      setInvoices(invoices.some((i) => i.uid === rec.uid) ? invoices.map((i) => (i.uid === rec.uid ? rec : i)) : [...invoices, rec]);
+      log("Invoice Created", `${rec.invoiceNumber} • ${money(rec.total, rec.currency)} • ${status}`, rec.uid);
+      bump(); setToast(status === "Draft" ? "Invoice saved as draft." : "Invoice submitted — it travels in your next backup.");
+      setForm(null);
+    };
+    return h("div", null,
+      h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
+        h("b", { style: { fontSize: 16 } }, "🧾 Invoices"),
+        h(Btn, { small: true, onClick: () => setForm(blank()) }, "➕ New Invoice")),
+      h("div", { style: { fontSize: 12.5, color: C.sub, marginBottom: 12 } },
+        "Every invoice line must belong to a booking assigned to you. Payment status is recorded by Discover Thailand Accounts — you cannot mark an invoice paid."),
+      !invoices.length ? h(Empty, { text: "No invoices yet." }) : null,
+      invoices.map((i) =>
+        h(Card, { key: i.uid },
+          h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8 } },
+            h("div", null,
+              h("b", { style: { fontSize: 15 } }, i.invoiceNumber || "(no number)"),
+              h("div", { style: { fontSize: 12.5, color: C.sub, marginTop: 3 } }, fmtD(i.invoiceDate) + " • " + (i.items || []).length + " item(s)")),
+            h(Tag, { color: i.status === "Paid" ? C.green : i.status === "Rejected" ? C.red : i.status === "Draft" ? C.sub : C.blue }, i.status)),
+          h("div", { style: { fontSize: 17, fontWeight: 800, marginTop: 8, color: C.deep } }, money(i.total, i.currency)),
+          SUPPLIER_EDITABLE_INV.includes(i.status)
+            ? h("div", { style: { marginTop: 10, display: "flex", gap: 8 } }, h(Btn, { small: true, variant: "ghost", onClick: () => setForm(i) }, "✎ Edit"))
+            : h("div", { style: { marginTop: 8, fontSize: 12, color: C.sub } }, "Locked — under review by Discover Thailand."))),
+      form ? h(Modal, { title: form.invoiceNumber ? "✎ Invoice" : "➕ Supplier Invoice", onClose: () => setForm(null), width: 640 },
+        h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          h(Field, { label: "Supplier invoice no.", value: form.invoiceNumber, onChange: sf("invoiceNumber") }),
+          h(Field, { label: "Currency", value: form.currency, onChange: sf("currency"), options: ["THB", "USD", "EUR"] })),
+        h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          h(Field, { label: "Invoice date", value: form.invoiceDate, onChange: sf("invoiceDate"), type: "date" }),
+          h(Field, { label: "Due date", value: form.dueDate, onChange: sf("dueDate"), type: "date" })),
+        h("b", { style: { fontSize: 13.5 } }, "Items"),
+        (form.items || []).map((it) =>
+          h("div", { key: it.id, style: { border: "1px solid " + C.border, borderRadius: 12, padding: 10, marginTop: 8, background: C.card2 } },
+            h("label", { style: { display: "block", fontSize: 12, fontWeight: 700, color: C.sub, marginBottom: 5 } }, "Booking / service"),
+            h("select", { value: it.jobUid || "", onChange: (e) => pickJob(it.id, e.target.value), style: Object.assign(inputStyle(), { marginBottom: 8 }) },
+              h("option", { value: "" }, "— select an assigned service —"),
+              eligible.map((j) => h("option", { key: j.uid, value: j.uid }, `${j.bookingId} • ${j.serviceName || "Service"} • ${fmtD(j.date)}`))),
+            h("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 } },
+              h(Field, { label: "Service date", value: it.serviceDate, onChange: (v) => updItem(it.id, "serviceDate", v), type: "date" }),
+              h(Field, { label: "Qty", value: it.qty, onChange: (v) => updItem(it.id, "qty", v), type: "number" }),
+              h(Field, { label: "Supplier rate", value: it.rate, onChange: (v) => updItem(it.id, "rate", v), type: "number" })),
+            h("div", { style: { textAlign: "right", fontWeight: 800, fontSize: 14 } }, money(num(it.qty) * num(it.rate), form.currency)),
+            h("button", { onClick: () => setForm((f) => ({ ...f, items: f.items.filter((x) => x.id !== it.id) })), style: { background: "none", border: "none", color: C.red, fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0, marginTop: 4 } }, "Remove line"))),
+        h(Btn, { small: true, variant: "ghost", onClick: addItem, style: { marginTop: 8 } }, "➕ Add line"),
+        h("div", { style: { marginTop: 12 } }, h(Field, { label: "VAT / tax amount (if applicable)", value: form.vat, onChange: sf("vat"), type: "number" })),
+        h(Field, { label: "Notes", value: form.notes, onChange: sf("notes"), area: true }),
+        h(Field, { label: "Attachment reference (invoice PDF / bank slip file name)", value: form.attachmentName, onChange: sf("attachmentName") }),
+        h("div", { style: { background: C.bg2, borderRadius: 10, padding: 12, marginTop: 6, fontSize: 14 } },
+          h("div", { style: { display: "flex", justifyContent: "space-between" } }, h("span", null, "Subtotal"), h("b", null, money(subtotal(form), form.currency))),
+          h("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 4 } }, h("span", null, "VAT"), h("b", null, money(form.vat, form.currency))),
+          h("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 16 } }, h("b", null, "Total"), h("b", { style: { color: C.deep } }, money(total(form), form.currency)))),
+        h("div", { style: { display: "flex", gap: 8, marginTop: 14 } },
+          h(Btn, { variant: "ghost", onClick: () => saveInv("Draft"), style: { flex: 1 } }, "Save draft"),
+          h(Btn, { onClick: () => saveInv("Submitted"), disabled: !String(form.invoiceNumber || "").trim() || !(form.items || []).length, style: { flex: 1 } }, "Submit"))) : null);
+  }
+
+  /* ═══════════════ VOUCHERS (spec §10) ═══════════════ */
+  function VoucherPage(ctx) {
+    const { vouchers, setVouchers, jobs, profile, log, bump, setToast, C } = ctx;
+    const [pick, setPick] = useState(false);
+    const make = (j) => {
+      const v = {
+        uid: uuid(), no: "SV-" + new Date().getFullYear() + "-" + String(vouchers.length + 1).padStart(4, "0"),
+        jobUid: j.uid, bookingUid: j.bookingUid, bookingId: j.bookingId, guest: j.guest,
+        serviceName: j.serviceName, date: j.date, time: j.supPickupTime || j.time,
+        adults: j.adults, children: j.children, infants: j.infants, pickup: j.pickup, dropoff: j.dropoff,
+        confNumber: j.confNumber, vehicle: j.supVehicle || j.vehicle, driver: j.supDriver, driverPhone: j.supDriverPhone,
+        guide: j.supGuide, guidePhone: j.supGuidePhone, notes: j.supNotes,
+        supplierName: profile.name, supplierId: profile.supplierId, createdAt: nowISO(), type: "Service Voucher",
+      };
+      setVouchers([...vouchers, v]); log("Voucher Created", `${v.no} • ${j.bookingId}`, v.uid); bump();
+      setToast("Voucher " + v.no + " created."); setPick(false);
+    };
+    const printVoucher = (v) => {
+      const rows = [["Booking ID", v.bookingId], ["Guest / Group", v.guest], ["Service", v.serviceName],
+        ["Date", fmtD(v.date)], ["Time", v.time], ["PAX", paxLine(v)], ["Pick-up", v.pickup], ["Drop-off", v.dropoff],
+        ["Vehicle", v.vehicle], ["Driver", [v.driver, v.driverPhone].filter(Boolean).join(" • ")],
+        ["Guide", [v.guide, v.guidePhone].filter(Boolean).join(" • ")],
+        ["Supplier confirmation", v.confNumber], ["Notes", v.notes]].filter((r) => r[1]);
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${v.no}</title>
+<style>@page{size:A4;margin:14mm}body{font-family:Arial,Helvetica,sans-serif;color:#16233A;font-size:13px}
+h1{font-size:19px;margin:0 0 2px;color:#123D35}.sub{color:#5F7191;font-size:12px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse}td{padding:7px 8px;border-bottom:1px solid #D5DDE8;vertical-align:top}
+td.k{width:34%;color:#5F7191;font-weight:bold}.bar{background:#123D35;color:#fff;padding:8px 10px;border-radius:6px;font-weight:bold;margin-bottom:12px}
+.ft{margin-top:18px;font-size:11px;color:#5F7191}</style></head><body>
+<h1>${v.supplierName}</h1><div class="sub">Operational Service Voucher &nbsp;•&nbsp; ${v.no} &nbsp;•&nbsp; ${fmtDT(v.createdAt)}</div>
+<div class="bar">${v.serviceName} — ${fmtD(v.date)}</div>
+<table>${rows.map((r) => `<tr><td class="k">${r[0]}</td><td>${String(r[1]).replace(/</g, "&lt;")}</td></tr>`).join("")}</table>
+<div class="ft">Issued by ${v.supplierName} for Discover Thailand Co., Ltd. Operational document — not a client invoice.</div>
+</body></html>`;
+      const w = window.open("", "_blank");
+      if (!w) { setToast("Please allow pop-ups to print."); return; }
+      w.document.write(html); w.document.close(); setTimeout(() => w.print(), 350);
+    };
+    const dailyReport = (dateStr) => {
+      const list = jobs.filter((j) => j.date === dateStr && j.supStatus !== "Cancelled");
+      if (!list.length) { setToast("No services on " + fmtD(dateStr)); return; }
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Daily Service Voucher</title>
+<style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;font-size:12px;color:#16233A}
+h2{color:#123D35;margin:0 0 10px}table{width:100%;border-collapse:collapse}th{background:#123D35;color:#fff;padding:7px;text-align:left;font-size:11px}
+td{padding:6px 7px;border-bottom:1px solid #D5DDE8}</style></head><body>
+<h2>${profile.name} — Daily Service Sheet — ${fmtD(dateStr)}</h2>
+<table><tr><th>Booking</th><th>Guest</th><th>Service</th><th>Time</th><th>PAX</th><th>Pick-up</th><th>Conf.</th><th>Status</th></tr>
+${list.map((j) => `<tr><td>${j.bookingId}</td><td>${j.guest || ""}</td><td>${j.serviceName || ""}</td><td>${j.supPickupTime || j.time || ""}</td><td>${paxLine(j)}</td><td>${j.pickup || ""}</td><td>${j.confNumber || ""}</td><td>${j.supStatus}</td></tr>`).join("")}</table>
+</body></html>`;
+      const w = window.open("", "_blank");
+      if (!w) { setToast("Please allow pop-ups to print."); return; }
+      w.document.write(html); w.document.close(); setTimeout(() => w.print(), 350);
+    };
+    const weekly = () => {
+      const from = today(); const to = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+      const list = jobs.filter((j) => j.date >= from && j.date <= to).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      if (!list.length) { setToast("No services in the next 7 days."); return; }
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Weekly Booking Report</title>
+<style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;font-size:12px}h2{color:#123D35}
+table{width:100%;border-collapse:collapse}th{background:#237765;color:#fff;padding:7px;text-align:left;font-size:11px}
+td{padding:6px 7px;border-bottom:1px solid #D5DDE8}</style></head><body>
+<h2>${profile.name} — Weekly Booking Report (${fmtD(from)} → ${fmtD(to)})</h2>
+<table><tr><th>Date</th><th>Booking</th><th>Guest</th><th>Service</th><th>PAX</th><th>Status</th><th>Conf.</th></tr>
+${list.map((j) => `<tr><td>${fmtD(j.date)}</td><td>${j.bookingId}</td><td>${j.guest || ""}</td><td>${j.serviceName || ""}</td><td>${paxLine(j)}</td><td>${j.supStatus}</td><td>${j.confNumber || ""}</td></tr>`).join("")}</table>
+</body></html>`;
+      const w = window.open("", "_blank");
+      if (!w) { setToast("Please allow pop-ups to print."); return; }
+      w.document.write(html); w.document.close(); setTimeout(() => w.print(), 350);
+    };
+    return h("div", null,
+      h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
+        h("b", { style: { fontSize: 16 } }, "📄 Vouchers & Reports"),
+        h(Btn, { small: true, onClick: () => setPick(true) }, "➕ Create Voucher")),
+      h("div", { style: { display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" } },
+        h(Btn, { small: true, variant: "ghost", onClick: () => dailyReport(today()) }, "📅 Today's service sheet"),
+        h(Btn, { small: true, variant: "ghost", onClick: weekly }, "🗓 Weekly report")),
+      !vouchers.length ? h(Empty, { text: "No vouchers yet." }) : null,
+      vouchers.slice().reverse().map((v) =>
+        h(Card, { key: v.uid },
+          h("div", { style: { display: "flex", justifyContent: "space-between", gap: 8 } },
+            h("div", null, h("b", null, v.no), h("div", { style: { fontSize: 12.5, color: C.sub, marginTop: 3 } }, v.bookingId + " • " + (v.serviceName || ""))),
+            h(Tag, null, fmtD(v.date))),
+          h("div", { style: { marginTop: 10, display: "flex", gap: 8 } },
+            h(Btn, { small: true, variant: "ghost", onClick: () => printVoucher(v) }, "🖨 Print / PDF")))),
+      pick ? h(Modal, { title: "Choose a service", onClose: () => setPick(false) },
+        jobs.filter((j) => j.supStatus !== "Cancelled").length ? null : h(Empty, { text: "No services available." }),
+        jobs.filter((j) => j.supStatus !== "Cancelled").map((j) =>
+          h("button", { key: j.uid, onClick: () => make(j),
+            style: { display: "block", width: "100%", textAlign: "left", background: C.card2, border: "1px solid " + C.border, borderRadius: 12, padding: 12, marginBottom: 8, cursor: "pointer", fontFamily: "inherit", color: C.text } },
+            h("b", null, j.serviceName || "Service"),
+            h("div", { style: { fontSize: 12.5, color: C.sub, marginTop: 3 } }, `${j.bookingId} • ${fmtD(j.date)} • ${paxLine(j)}`)))) : null);
+  }
+
+  /* ═══════════════ BACKUP / IMPORT (spec §5, §11, §16, §17) ═══════════════ */
+  function BackupPage(ctx) {
+    const { importPackage, exportBackup, meta, audit, profile, jobs, changes, invoices, C } = ctx;
+    const [res, setRes] = useState(null); const [err, setErr] = useState(""); const [showLog, setShowLog] = useState(false);
+    const pickFile = (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      setErr(""); setRes(null);
+      const r = new FileReader();
+      r.onload = () => { const out = importPackage(String(r.result), f.name); if (out.error) setErr(out.error); else setRes(out); };
+      r.onerror = () => setErr("Could not read the file.");
+      r.readAsText(f);
+      e.target.value = "";
+    };
+    return h("div", null,
+      h(Card, null,
+        h("b", { style: { fontSize: 15 } }, "📥 Import Booking File"),
+        h("div", { style: { fontSize: 12.5, color: C.sub, margin: "6px 0 12px", lineHeight: 1.6 } },
+          "Import the Supplier Booking Package sent by Discover Thailand. Importing the same file twice never duplicates records."),
+        h("label", { style: { display: "block" } },
+          h("input", { type: "file", accept: ".json,application/json", onChange: pickFile, style: { display: "none" } }),
+          h("div", { style: { background: C.teal, color: "#fff", borderRadius: 10, padding: 12, textAlign: "center", fontWeight: 700, cursor: "pointer" } }, "Choose package file")),
+        err ? h("div", { style: { marginTop: 12, background: C.red + "14", color: C.red, padding: 11, borderRadius: 10, fontSize: 13, fontWeight: 600 } }, err) : null,
+        res ? h("div", { style: { marginTop: 12, background: C.bg2, borderRadius: 10, padding: 12, fontSize: 13.5 } },
+          h("b", null, "Import summary"),
+          h("div", { style: { marginTop: 6, lineHeight: 1.8 } },
+            h("div", null, "New bookings: ", h("b", null, res.added)),
+            h("div", null, "Updated bookings: ", h("b", null, res.updated)),
+            h("div", null, "Already imported / unchanged: ", h("b", null, res.same)),
+            res.already ? h("div", { style: { color: C.amber, fontWeight: 700 } }, "⚠️ This package was imported before — no records were duplicated.") : null)) : null),
+      h(Card, null,
+        h("b", { style: { fontSize: 15 } }, "💾 Export Supplier Backup"),
+        h("div", { style: { fontSize: 12.5, color: C.sub, margin: "6px 0 12px", lineHeight: 1.6 } },
+          "Creates a file containing only your data — confirmations, status changes, services, invoices, vouchers and change requests. Send it to Discover Thailand; the Manager reviews every change before it is merged."),
+        h("div", { style: { fontSize: 13, lineHeight: 1.8, marginBottom: 12 } },
+          h("div", null, "Last backup: ", h("b", null, meta.lastBackupAt ? fmtDT(meta.lastBackupAt) : "never")),
+          h("div", null, "Changes since backup: ", h("b", { style: { color: (meta.changesSince || 0) ? C.amber : C.green } }, meta.changesSince || 0)),
+          h("div", null, "Records: ", h("b", null, jobs.length + " service(s), " + invoices.length + " invoice(s), " + changes.filter((c) => c.status === "Submitted").length + " change request(s)"))),
+        h(Btn, { full: true, onClick: exportBackup }, "⬇ Export Supplier Backup"),
+        h("div", { style: { fontSize: 11.5, color: C.sub, marginTop: 10, lineHeight: 1.6 } },
+          "Recommended: export daily while you have active bookings, plus one full backup every week.")),
+      h(Card, null,
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          h("b", { style: { fontSize: 15 } }, "🗂 Activity log"),
+          h(Btn, { small: true, variant: "ghost", onClick: () => setShowLog(!showLog) }, showLog ? "Hide" : "Show")),
+        showLog
+          ? h("div", { style: { marginTop: 10, maxHeight: 320, overflowY: "auto" } },
+              audit.slice().reverse().map((a) =>
+                h("div", { key: a.id, style: { padding: "8px 0", borderBottom: "1px dashed " + C.border, fontSize: 12.5 } },
+                  h("b", null, a.action), h("span", { style: { color: C.sub } }, " • " + fmtDT(a.at)),
+                  a.detail ? h("div", { style: { color: C.sub, marginTop: 2 } }, a.detail) : null)))
+          : null),
+      h(Card, null,
+        h("b", { style: { fontSize: 15 } }, "🏢 My company"),
+        h("div", { style: { fontSize: 13, lineHeight: 1.9, marginTop: 6 } },
+          h("div", null, "Name: ", h("b", null, profile.name)),
+          h("div", null, "Supplier ID: ", h("b", null, profile.supplierId)),
+          h("div", null, "Account status: ", h(Tag, { color: C.green }, profile.status || "Active")),
+          h("div", null, "Portal version: ", h("b", null, APP_VERSION)))));
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(React.createElement(App));
+}
+
+</script>
+</body>
+</html>

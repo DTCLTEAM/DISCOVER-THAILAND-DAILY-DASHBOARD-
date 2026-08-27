@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISCOVER THE ASIA — DiscoverTheAsia.com | Platform Demo</title>
+<style>
+:root{
+  --navy:#0A1E38; --navy2:#122B4E; --navy3:#1A3A63;
+  --emerald:#0F9B77; --emerald-d:#0B7A5E; --emerald-l:#E3F5EF;
+  --gold:#C9A24B; --gold-l:#F7EFDD;
+  --ink:#1C2733; --mut:#5B6B7C; --line:#E3E9F0; --soft:#F6F8FB; --white:#fff;
+  --red:#C64B3C; --red-l:#FBEAE7; --amber:#B57F1F; --amber-l:#FBF3DF; --blue:#2563A8; --blue-l:#E7F0FA;
+  --disp:'Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;
+  --body:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Consolas,'Courier New',monospace;
+  --rad:10px; --sh:0 6px 24px rgba(10,30,56,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--ink);background:var(--white);font-size:15px;line-height:1.55}
+button{font-family:var(--body);cursor:pointer;border:none;background:none}
+h1,h2,h3,.disp{font-family:var(--disp)}
+a{color:var(--emerald);text-decoration:none}
+::selection{background:var(--gold-l)}
+
+/* ===== ENV SWITCHER ===== */
+#envbar{position:sticky;top:0;z-index:900;background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:8px 20px;font-size:12.5px}
+#envbar .brand{font-family:var(--disp);letter-spacing:.14em;font-size:13px;color:var(--gold)}
+#envbar .tag{color:#9FB0C5;letter-spacing:.06em}
+#envbar .sw{margin-left:auto;display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px}
+#envbar .sw button{color:#C7D2E0;padding:6px 16px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.03em}
+#envbar .sw button.on{background:var(--emerald);color:#fff}
+.demo-pill{background:var(--gold);color:var(--navy);font-weight:700;padding:3px 10px;border-radius:999px;font-size:11px;letter-spacing:.08em}
+
+/* ===== CUSTOMER SITE ===== */
+#site{display:block}
+.nav{display:flex;align-items:center;gap:26px;padding:16px 5vw;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:37px;z-index:800}
+.logo{font-family:var(--disp);font-size:20px;color:var(--navy);letter-spacing:.10em;cursor:pointer}
+.logo b{color:var(--emerald)}
+.nav .links{display:flex;gap:22px;font-size:13.5px;font-weight:600;color:var(--mut)}
+.nav .links span{cursor:pointer;padding:4px 0;border-bottom:2px solid transparent}
+.nav .links span:hover,.nav .links span.on{color:var(--navy);border-color:var(--gold)}
+.nav .cta{margin-left:auto;display:flex;gap:10px}
+.btn{border-radius:8px;padding:10px 18px;font-weight:700;font-size:13.5px;letter-spacing:.02em;transition:.18s}
+.btn-em{background:var(--emerald);color:#fff}
+.btn-em:hover{background:var(--emerald-d)}
+.btn-gh{border:1.5px solid var(--navy);color:var(--navy)}
+.btn-gh:hover{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:7px}
+
+.page{display:none}
+.page.on{display:block}
+
+/* hero */
+.hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 55%,#14405c 100%);color:#fff;padding:74px 5vw 60px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-140px;top:-140px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(201,162,75,.22),transparent 65%)}
+.hero .kick{letter-spacing:.28em;font-size:11.5px;color:var(--gold);font-weight:700;margin-bottom:18px}
+.hero h1{font-size:clamp(34px,4.6vw,56px);line-height:1.12;font-weight:600;max-width:760px}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{color:#B9C7D8;max-width:600px;margin:18px 0 30px;font-size:16px}
+.searchbox{background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.28);display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr auto;gap:0;max-width:960px;position:relative;z-index:2}
+.searchbox .f{padding:14px 18px;border-right:1px solid var(--line)}
+.searchbox label{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--mut);font-weight:700;text-transform:uppercase}
+.searchbox select,.searchbox input{border:none;outline:none;font-size:14px;color:var(--ink);width:100%;background:none;font-weight:600;padding-top:3px}
+.searchbox .go{display:flex;align-items:center;padding:8px}
+.hero .sub{display:flex;gap:26px;margin-top:26px;color:#8FA2B8;font-size:12.5px;flex-wrap:wrap}
+.hero .sub b{color:#fff;font-family:var(--disp);font-size:19px;display:block}
+
+.sec{padding:58px 5vw}
+.sec.alt{background:var(--soft)}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:20px;flex-wrap:wrap}
+.sec-head .kick{letter-spacing:.24em;font-size:11px;color:var(--emerald);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.sec-head h2{font-size:30px;color:var(--navy);font-weight:600}
+.grid{display:grid;gap:18px}
+.g4{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+.dest{border-radius:var(--rad);overflow:hidden;cursor:pointer;position:relative;height:200px;color:#fff;display:flex;align-items:flex-end;padding:16px;transition:.2s;box-shadow:var(--sh)}
+.dest:hover{transform:translateY(-4px)}
+.dest .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(6,18,34,.85))}
+.dest .in{position:relative}
+.dest h3{font-size:20px}
+.dest small{color:#CBD8E6;font-size:12px}
+.dest .flag{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em}
+
+.pkg{background:#fff;border:1px solid var(--line);border-radius:var(--rad);overflow:hidden;transition:.2s;display:flex;flex-direction:column}
+.pkg:hover{box-shadow:var(--sh);transform:translateY(-3px)}
+.pkg .ph{height:150px;display:flex;align-items:flex-end;padding:12px;color:#fff;position:relative}
+.pkg .ph .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(6,18,34,.8))}
+.pkg .badge{position:relative;background:var(--gold);color:var(--navy);font-size:10.5px;font-weight:800;letter-spacing:.08em;padding:3px 9px;border-radius:4px}
+.pkg .bd{padding:16px;flex:1;display:flex;flex-direction:column}
+.pkg h3{font-size:17px;color:var(--navy);margin-bottom:4px}
+.pkg .meta{color:var(--mut);font-size:12.5px;margin-bottom:12px}
+.pkg .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}
+.pkg .price small{display:block;color:var(--mut);font-size:11px}
+.pkg .price b{color:var(--emerald-d);font-size:18px;font-family:var(--disp)}
+
+.gr-bkk{background:linear-gradient(135deg,#1A3A63,#2E6DA1)}
+.gr-pty{background:linear-gradient(135deg,#0B7A5E,#17A98A)}
+.gr-hkt{background:linear-gradient(135deg,#0E6C8C,#2AA5C9)}
+.gr-krb{background:linear-gradient(135deg,#14584A,#2E8C6E)}
+.gr-smi{background:linear-gradient(135deg,#8C6A1F,#C9A24B)}
+.gr-cnx{background:linear-gradient(135deg,#54401E,#8C6A1F)}
+.gr-vn{background:linear-gradient(135deg,#7A2E2E,#B85C3C)}
+.gr-jp{background:linear-gradient(135deg,#5E2750,#9C4368)}
+.gr-mv{background:linear-gradient(135deg,#0E5A8C,#38A3D8)}
+.gr-sg{background:linear-gradient(135deg,#333B6B,#5E68A8)}
+.gr-id{background:linear-gradient(135deg,#3C6B33,#6FA84F)}
+.gr-lk{background:linear-gradient(135deg,#6B4A1F,#A87E3C)}
+
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.why .card{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:22px}
+.why .n{font-family:var(--disp);color:var(--gold);font-size:26px}
+.why h3{font-size:16px;color:var(--navy);margin:8px 0 6px}
+.why p{color:var(--mut);font-size:13px}
+
+.cta-band{background:var(--navy);color:#fff;border-radius:16px;padding:40px;display:flex;align-items:center;gap:30px;flex-wrap:wrap;position:relative;overflow:hidden}
+.cta-band:before{content:"";position:absolute;left:-80px;bottom:-120px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(15,155,119,.35),transparent 70%)}
+.cta-band h2{font-size:26px;position:relative}
+.cta-band p{color:#AEBFD2;position:relative;max-width:520px}
+.cta-band .btn{position:relative;margin-left:auto}
+
+/* thailand page */
+.cityrow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 26px}
+.chip{border:1.5px solid var(--line);border-radius:999px;padding:7px 15px;font-size:13px;font-weight:600;color:var(--mut);cursor:pointer}
+.chip.on,.chip:hover{border-color:var(--emerald);color:var(--emerald-d);background:var(--emerald-l)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:26px}
+.info{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:16px}
+.info label{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.info b{display:block;color:var(--navy);margin-top:4px;font-size:14px}
+
+/* planner */
+.planner{display:grid;grid-template-columns:380px 1fr;gap:26px;align-items:start}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:var(--sh)}
+.pcard h3{color:var(--navy);font-size:19px;margin-bottom:14px}
+.frm label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700;margin:12px 0 4px}
+.frm input,.frm select,.frm textarea{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--body);outline:none;background:#fff}
+.frm input:focus,.frm select:focus,.frm textarea:focus{border-color:var(--emerald)}
+.ai-out{min-height:300px}
+.ai-msg{background:var(--soft);border:1px dashed var(--line);border-radius:12px;padding:40px;text-align:center;color:var(--mut)}
+.itin-day{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.itin-day .dnum{flex:none;width:44px;height:44px;border-radius:10px;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:15px}
+.itin-day h4{font-size:14.5px;color:var(--navy)}
+.itin-day p{color:var(--mut);font-size:13px}
+.route-pills{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.route-pills span{background:var(--emerald-l);color:var(--emerald-d);border-radius:999px;padding:5px 13px;font-size:12.5px;font-weight:700}
+.est{display:flex;align-items:center;justify-content:space-between;background:var(--gold-l);border-radius:10px;padding:14px 18px;margin-top:16px}
+.est b{font-family:var(--disp);font-size:22px;color:var(--navy)}
+
+/* mice + b2b */
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:34px;align-items:center}
+.list-ticks{margin:16px 0;display:grid;gap:9px}
+.list-ticks div{display:flex;gap:10px;font-size:14px;color:var(--ink)}
+.tick{color:var(--emerald);font-weight:800}
+
+footer{background:var(--navy);color:#8FA2B8;padding:44px 5vw;font-size:13px}
+footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:26px;margin-bottom:26px}
+footer h4{color:#fff;font-size:13px;letter-spacing:.1em;margin-bottom:10px;text-transform:uppercase}
+footer .lg{font-family:var(--disp);color:var(--gold);font-size:18px;letter-spacing:.1em;margin-bottom:8px}
+footer li{list-style:none;margin:5px 0;cursor:pointer}
+footer li:hover{color:#fff}
+footer .base{border-top:1px solid rgba(255,255,255,.12);padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+/* ===== ADMIN ===== */
+#admin{display:none;background:var(--soft);min-height:100vh}
+.adm-wrap{display:grid;grid-template-columns:236px 1fr;min-height:calc(100vh - 37px)}
+.sidebar{background:var(--navy);color:#B7C6D8;padding:18px 0 30px;overflow-y:auto;position:sticky;top:37px;height:calc(100vh - 37px)}
+.sidebar .lg{font-family:var(--disp);color:#fff;letter-spacing:.1em;font-size:14px;padding:0 20px 14px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:10px}
+.sidebar .lg b{color:var(--gold)}
+.sgrp{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#5F7391;padding:14px 20px 5px}
+.sidebar a{display:flex;align-items:center;gap:10px;color:#B7C6D8;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;border-left:3px solid transparent}
+.sidebar a:hover{color:#fff;background:rgba(255,255,255,.05)}
+.sidebar a.on{color:#fff;background:rgba(15,155,119,.18);border-left-color:var(--emerald)}
+.sidebar .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:auto}
+
+.main{padding:24px 28px 60px;min-width:0}
+.topbar{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.topbar h1{font-size:23px;color:var(--navy);font-weight:600}
+.topbar .search{margin-left:auto;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 14px;display:flex;gap:8px;align-items:center;min-width:280px}
+.topbar .search input{border:none;outline:none;font-size:13px;flex:1;background:none}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+
+.view{display:none}
+.view.on{display:block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:16px 18px}
+.kpi label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.kpi b{display:block;font-family:var(--disp);font-size:24px;color:var(--navy);margin:5px 0 2px}
+.kpi small{font-size:11.5px;font-weight:700}
+.up{color:var(--emerald-d)} .dn{color:var(--red)}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:18px 20px;margin-bottom:18px}
+.panel h3{font-size:14px;color:var(--navy);letter-spacing:.02em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h3 .rt{margin-left:auto;font-size:12px;color:var(--emerald);font-weight:700;cursor:pointer}
+.duo{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--soft);vertical-align:middle}
+tr:hover td{background:#FAFCFE}
+td b{color:var(--navy)}
+.mono{font-family:var(--mono);font-size:12px;color:var(--navy3)}
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.03em;white-space:nowrap}
+.st-em{background:var(--emerald-l);color:var(--emerald-d)}
+.st-am{background:var(--amber-l);color:var(--amber)}
+.st-rd{background:var(--red-l);color:var(--red)}
+.st-bl{background:var(--blue-l);color:var(--blue)}
+.st-gy{background:#EEF1F5;color:var(--mut)}
+.st-nv{background:var(--navy);color:var(--gold)}
+
+.bar-row{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:8px}
+.bar-row .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.bar-row .stick{width:100%;max-width:38px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--emerald),var(--emerald-d));min-height:6px}
+.bar-row .stick.g{background:linear-gradient(180deg,var(--gold),#A8842F)}
+.bar-row .lb{font-size:10.5px;color:var(--mut);font-weight:700}
+.bar-row .v{font-size:10px;color:var(--navy);font-weight:800}
+.legend{display:flex;gap:16px;font-size:11.5px;color:var(--mut);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.attn{display:grid;gap:9px}
+.attn div{display:flex;gap:10px;align-items:center;background:var(--soft);border-left:3px solid var(--amber);padding:9px 12px;border-radius:6px;font-size:13px}
+.attn div.crit{border-left-color:var(--red)}
+.attn b{color:var(--navy)}
+
+/* CRM pipeline */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;overflow-x:auto}
+.pcol{background:#fff;border:1px solid var(--line);border-radius:var(--rad);padding:12px;min-width:170px}
+.pcol h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between;margin-bottom:10px}
+.pcol h4 span{background:var(--soft);border-radius:999px;padding:1px 8px;color:var(--navy)}
+.lead{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer}
+.lead:hover{border-color:var(--emerald)}
+.lead b{font-size:13px;color:var(--navy);display:block}
+.lead small{color:var(--mut);font-size:11.5px}
+.lead .src{display:inline-block;margin-top:5px;font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--emerald-d);background:var(--emerald-l);padding:1px 7px;border-radius:4px}
+
+/* quotation builder */
+.qb{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+.comp{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin-bottom:9px;background:#fff}
+.comp .ic{flex:none;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--soft)}
+.comp b{font-size:13.5px;color:var(--navy);display:block}
+.comp small{color:var(--mut);font-size:12px}
+.comp .amt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--navy);white-space:nowrap}
+.comp input[type=checkbox]{accent-color:var(--emerald);width:16px;height:16px}
+.calc{position:sticky;top:60px}
+.calc .row{display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px;color:var(--mut)}
+.calc .row b{color:var(--navy)}
+.calc .tot{border-top:2px solid var(--navy);margin-top:8px;padding-top:10px;font-size:15px}
+.calc .tot b{font-family:var(--disp);font-size:22px;color:var(--emerald-d)}
+.mk{display:flex;gap:8px;align-items:center;margin:10px 0}
+.mk input{width:80px;border:1.5px solid var(--line);border-radius:7px;padding:7px 10px;font-size:14px;text-align:right}
+.qact{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+
+/* group ops */
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.svc{background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px}
+.svc label{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.svc b{display:block;margin:5px 0;color:var(--navy);font-size:13.5px}
+
+.room-sum{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.room-sum span{background:var(--navy);color:#fff;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700}
+.room-sum span b{color:var(--gold);font-family:var(--disp);font-size:16px;margin-right:5px}
+
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(8,20,38,.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:860px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 40px 90px rgba(0,0,0,.4)}
+.modal .mh{padding:20px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;position:sticky;top:0;background:#fff;z-index:2;border-radius:16px 16px 0 0}
+.modal .mh h2{font-size:19px;color:var(--navy)}
+.modal .x{margin-left:auto;font-size:20px;color:var(--mut);width:34px;height:34px;border-radius:8px}
+.modal .x:hover{background:var(--soft)}
+.modal .mb{padding:24px 26px}
+
+/* workflow */
+.flow-steps{display:flex;flex-direction:column;gap:0}
+.fstep{display:flex;gap:16px;opacity:.32;transition:.3s}
+.fstep.done,.fstep.now{opacity:1}
+.fstep .rail{display:flex;flex-direction:column;align-items:center}
+.fstep .nd{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--mut)}
+.fstep.done .nd{background:var(--emerald);border-color:var(--emerald);color:#fff}
+.fstep.now .nd{border-color:var(--gold);color:var(--navy);box-shadow:0 0 0 4px var(--gold-l)}
+.fstep .ln{width:2px;flex:1;background:var(--line);min-height:14px}
+.fstep.done .ln{background:var(--emerald)}
+.fstep .fc{padding:2px 0 18px}
+.fstep h4{font-size:14px;color:var(--navy)}
+.fstep p{font-size:12.5px;color:var(--mut)}
+.fstep .detail{display:none;background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin-top:8px;font-size:12.5px}
+.fstep.now .detail,.fstep.done .detail{display:block}
+.detail .kv{display:flex;justify-content:space-between;padding:3px 0}
+.detail .kv b{color:var(--navy)}
+
+.tabs{display:flex;gap:6px;border-bottom:1.5px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs button{padding:9px 15px;font-size:13px;font-weight:700;color:var(--mut);border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.tabs button.on{color:var(--emerald-d);border-color:var(--emerald)}
+
+.ai-chat{background:var(--navy);border-radius:12px;padding:18px;color:#D5E0EC;font-size:13px}
+.ai-chat .q{background:rgba(255,255,255,.09);border-radius:10px 10px 10px 3px;padding:11px 14px;margin-bottom:10px;max-width:85%}
+.ai-chat .a{background:var(--emerald);color:#fff;border-radius:10px 10px 3px 10px;padding:11px 14px;margin-left:auto;max-width:85%}
+.ai-chat .a table{font-size:12px;margin-top:6px}
+.ai-chat .a td{border-color:rgba(255,255,255,.2);padding:4px 8px;color:#fff}
+
+.donut{width:130px;height:130px;border-radius:50%;background:conic-gradient(var(--emerald) 0 46%,var(--gold) 46% 74%,var(--navy3) 74% 90%,#C4CFDB 90% 100%);position:relative;flex:none}
+.donut:after{content:"";position:absolute;inset:26px;background:#fff;border-radius:50%}
+.dwrap{display:flex;gap:20px;align-items:center}
+
+.prog{height:8px;border-radius:99px;background:var(--soft);overflow:hidden}
+.prog i{display:block;height:100%;border-radius:99px;background:var(--emerald)}
+.prog i.g{background:var(--gold)}
+.prog i.r{background:var(--red)}
+
+@media(max-width:1080px){.duo,.trio,.qb,.planner,.split{grid-template-columns:1fr}.pipe{grid-template-columns:repeat(5,220px)}.adm-wrap{grid-template-columns:200px 1fr}}
+@media(max-width:820px){
+  .nav .links{display:none}
+  .searchbox{grid-template-columns:1fr 1fr}
+  .searchbox .go{grid-column:1/-1;padding:12px}
+  .adm-wrap{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0;height:auto;display:flex;overflow-x:auto;padding:8px}
+  .sidebar .lg,.sgrp{display:none}
+  .sidebar a{white-space:nowrap;border-left:none;border-bottom:3px solid transparent}
+  .sidebar a.on{border-bottom-color:var(--emerald)}
+  footer .cols{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ ENVIRONMENT SWITCHER ============ -->
+<div id="envbar">
+  <span class="brand">DISCOVER THE ASIA</span>
+  <span class="tag">One Partner. All of Asia.</span>
+  <span class="demo-pill">INTERACTIVE DEMO</span>
+  <div class="sw">
+    <button id="swSite" class="on" onclick="setEnv('site')">Customer Website</button>
+    <button id="swAdmin" onclick="setEnv('admin')">DMC Platform</button>
+  </div>
+</div>
+
+<!-- ============================================================= -->
+<!-- ENVIRONMENT 1 — CUSTOMER-FACING WEBSITE                       -->
+<!-- ============================================================= -->
+<div id="site">
+
+<nav class="nav">
+  <div class="logo" onclick="goPage('home')">DISCOVER <b>THE ASIA</b></div>
+  <div class="links">
+    <span data-p="home" class="on" onclick="goPage('home')">Home</span>
+    <span data-p="thailand" onclick="goPage('thailand')">Destinations</span>
+    <span data-p="planner" onclick="goPage('planner')">AI Trip Planner</span>
+    <span data-p="mice" onclick="goPage('mice')">MICE &amp; Corporate</span>
+    <span data-p="b2b" onclick="goPage('b2b')">Travel Agents</span>
+  </div>
+  <div class="cta">
+    <button class="btn btn-gh btn-sm" onclick="setEnv('admin')">Agent Login</button>
+    <button class="btn btn-em btn-sm" onclick="goPage('planner')">Plan My Trip</button>
+  </div>
+</nav>
+
+<!-- ---------- HOME ---------- -->
+<div class="page on" id="p-home">
+  <div class="hero">
+    <div class="kick">ASIA DMC · B2B MARKETPLACE · MICE · AI TRAVEL TECHNOLOGY</div>
+    <h1>Discover Asia with <em>one trusted partner.</em></h1>
+    <p>From a single traveler in Bangkok to a 300-guest incentive across three islands — we design, price, and operate journeys across 19 Asian destinations, powered by our own DMC network and AI travel technology.</p>
+    <div class="searchbox">
+      <div class="f"><label>Destination</label>
+        <select><option>Thailand</option><option>Vietnam</option><option>Maldives</option><option>Japan</option><option>Singapore</option><option>Sri Lanka</option><option>Indonesia (Bali)</option></select></div>
+      <div class="f"><label>Travel dates</label><input value="12 – 18 Oct 2026"></div>
+      <div class="f"><label>Travelers</label><select><option>2 adults</option><option>2 adults · 2 children</option><option>Group 10–30</option><option>Group 30+</option></select></div>
+      <div class="f"><label>Travel type</label><select><option>Holiday</option><option>Honeymoon</option><option>Family</option><option>Corporate / MICE</option><option>Luxury</option></select></div>
+      <div class="go"><button class="btn btn-gold" onclick="goPage('planner')">Search</button></div>
+    </div>
+    <div class="sub">
+      <div><b>19</b>Asian destinations</div>
+      <div><b>640+</b>Contracted hotels</div>
+      <div><b>2,840</b>Travelers this month</div>
+      <div><b>24/7</b>On-ground operations</div>
+      <div><b>2012</b>Operating since</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
+      <div><div class="kick">Where next</div><h2>Featured destinations</h2></div>
+      <button class="btn btn-gh btn-sm" onclick="goPage('thailand')">All destinations →</button>
+    </div>
+    <div class="grid g4">
+      <div class="dest gr-bkk" onclick="goPage('thailand')"><div class="shade"></div><span class="flag">FLAGSHIP</span><div class="in"><h3>Thailand</h3><small>Bangkok · Pattaya · Phuket · Krabi · Samui</small></div></div>
+      <div class="dest gr-vn"><div class="shade"></div><div class="in"><h3>Vietnam</h3><small>Hanoi · Ha Long · Da Nang · Saigon</small></div></div>
+      <div class="dest gr-mv"><div class="shade"></div><div class="in"><h3>Maldives</h3><small>Resort islands · Honeymoon</small></div></div>
+      <div class="dest gr-jp"><div class="shade"></div><div class="in"><h3>Japan</h3><small>Tokyo · Kyoto · Osaka</small></div></div>
+      <div class="dest gr-sg"><div class="shade"></div><div class="in"><h3>Singapore</h3><small>City · Sentosa · Cruise add-ons</small></div></div>
+      <div class="dest gr-id"><div class="shade"></div><div class="in"><h3>Indonesia</h3><small>Bali · Nusa Penida</small></div></div>
+      <div class="dest gr-lk"><div class="shade"></div><div class="in"><h3>Sri Lanka</h3><small>Kandy · Ella · South coast</small></div></div>
+      <div class="dest gr-krb"><div class="shade"></div><div class="in"><h3>Cambodia</h3><small>Siem Reap · Angkor</small></div></div>
+    </div>
+  </div>
+
+  <div class="sec alt">
+    <div class="sec-head">
+      <div><div class="kick">Best sellers</div><h2>Signature Asia packages</h2></div>
+    </div>
+    <div class="grid g3">
+      <div class="pkg"><div class="ph gr-pty"><div class="shade"></div><span class="badge">BEST SELLER</span></div>
+        <div class="bd"><h3>Bangkok &amp; Pattaya Classic</h3><div class="meta">5 days / 4 nights · 4★ hotels · Coral Island · Safari World · Alcazar</div>
+        <div class="foot"><div class="price"><small>From, per person</small><b>USD 295</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View details</button></div></div></div>
+      <div class="pkg"><div class="ph gr-hkt"><div class="shade"></div><span class="badge">ISLANDS</span></div>
+        <div class="bd"><h3>Phuket &amp; Krabi Island Escape</h3><div class="meta">6 days / 5 nights · Phi Phi · James Bond Island · Four Islands</div>
+        <div class="foot"><div class="price"><small>From, per person</small><b>USD 410</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View details</button></div></div></div>
+      <div class="pkg"><div class="ph gr-smi"><div class="shade"></div><span class="badge">HONEYMOON</span></div>
+        <div class="bd"><h3>Koh Samui Romance</h3><div class="meta">5 days / 4 nights · Pool villa · Ang Thong marine park · Candlelight dinner</div>
+        <div class="foot"><div class="price"><small>From, per person</small><b>USD 545</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View details</button></div></div></div>
+      <div class="pkg"><div class="ph gr-vn"><div class="shade"></div><span class="badge">MULTI-COUNTRY</span></div>
+        <div class="bd"><h3>Thailand + Vietnam Explorer</h3><div class="meta">9 days / 8 nights · Bangkok · Hanoi · Ha Long cruise</div>
+        <div class="foot"><div class="price"><small>From, per person</small><b>USD 890</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View details</button></div></div></div>
+      <div class="pkg"><div class="ph gr-bkk"><div class="shade"></div><span class="badge">CORPORATE</span></div>
+        <div class="bd"><h3>Bangkok Incentive Program</h3><div class="meta">4 days / 3 nights · Gala dinner · Conference · Chao Phraya cruise</div>
+        <div class="foot"><div class="price"><small>Group rate on request</small><b>MICE Desk</b></div><button class="btn btn-em btn-sm" onclick="goPage('mice')">Enquire</button></div></div></div>
+      <div class="pkg"><div class="ph gr-cnx"><div class="shade"></div><span class="badge">FAMILY</span></div>
+        <div class="bd"><h3>Chiang Mai Culture &amp; Nature</h3><div class="meta">5 days / 4 nights · Elephant sanctuary · Doi Suthep · Night bazaar</div>
+        <div class="foot"><div class="price"><small>From, per person</small><b>USD 385</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View details</button></div></div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><div><div class="kick">Why Discover The Asia</div><h2>Built like a DMC, delivered like a platform</h2></div></div>
+    <div class="why">
+      <div class="card"><div class="n">I.</div><h3>Direct supplier contracts</h3><p>640+ contracted hotels, our own transport fleet partners, licensed guides in 11 languages — not resold inventory.</p></div>
+      <div class="card"><div class="n">II.</div><h3>Group &amp; MICE specialists</h3><p>Rooming lists, flight manifests, gala production and command-center operations for groups up to 300+ pax.</p></div>
+      <div class="card"><div class="n">III.</div><h3>AI-assisted planning</h3><p>Instant itineraries and quotations drafted by AI, reviewed and confirmed by human travel experts.</p></div>
+      <div class="card"><div class="n">IV.</div><h3>24/7 on-ground team</h3><p>Emergency hotline, airport representatives and live operations tracking for every guest, every arrival.</p></div>
+    </div>
+  </div>
+
+  <div class="sec alt">
+    <div class="cta-band">
+      <div><h2 class="disp">Are you a travel agent or tour operator?</h2>
+      <p>Access confidential B2B net rates, build white-label quotations with your own logo and markup, and manage bookings on agent credit terms.</p></div>
+      <button class="btn btn-gold" onclick="goPage('b2b')">Become a B2B Partner</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- THAILAND ---------- -->
+<div class="page" id="p-thailand">
+  <div class="hero" style="padding:56px 5vw 44px">
+    <div class="kick">DESTINATION · SOUTHEAST ASIA</div>
+    <h1>Thailand</h1>
+    <p>Our flagship destination and operating base — golden temples, island archipelagos, world-famous street food, and Asia's most polished tourism infrastructure. Operated directly by Discover Thailand Co., Ltd., Bangkok.</p>
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><div class="kick">Explore by city</div><h2>Where in Thailand?</h2></div></div>
+    <div class="cityrow">
+      <span class="chip on">Bangkok</span><span class="chip">Pattaya</span><span class="chip">Phuket</span><span class="chip">Krabi</span><span class="chip">Koh Samui</span><span class="chip">Chiang Mai</span><span class="chip">Chiang Rai</span><span class="chip">Hua Hin</span><span class="chip">Khao Yai</span><span class="chip">Kanchanaburi</span>
+    </div>
+    <div class="grid g3">
+      <div class="pkg"><div class="ph gr-bkk"><div class="shade"></div><span class="badge">CITY</span></div>
+        <div class="bd"><h3>Bangkok City &amp; Temples</h3><div class="meta">Grand Palace · Wat Arun · Mahanakhon SkyWalk · Chao Phraya Dinner Cruise</div>
+        <div class="foot"><div class="price"><small>Day tours from</small><b>USD 45</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View</button></div></div></div>
+      <div class="pkg"><div class="ph gr-pty"><div class="shade"></div><span class="badge">BEACH + SHOWS</span></div>
+        <div class="bd"><h3>Pattaya Highlights</h3><div class="meta">Coral Island speedboat · Alcazar Cabaret · Nong Nooch Garden</div>
+        <div class="foot"><div class="price"><small>Day tours from</small><b>USD 38</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View</button></div></div></div>
+      <div class="pkg"><div class="ph gr-hkt"><div class="shade"></div><span class="badge">ISLANDS</span></div>
+        <div class="bd"><h3>Phuket &amp; Phi Phi</h3><div class="meta">Phi Phi by speedboat · James Bond Island · Patong nightlife</div>
+        <div class="foot"><div class="price"><small>Day tours from</small><b>USD 52</b></div><button class="btn btn-em btn-sm" onclick="openPkg()">View</button></div></div></div>
+    </div>
+    <div class="info-grid">
+      <div class="info"><label>Best time to visit</label><b>November – March</b></div>
+      <div class="info"><label>Visa</label><b>Visa-free / VOA for 90+ nationalities</b></div>
+      <div class="info"><label>Currency</label><b>Thai Baht (THB)</b></div>
+      <div class="info"><label>Main airports</label><b>BKK · DMK · HKT · USM · CNX</b></div>
+      <div class="info"><label>Weather now</label><b>28–33°C, tropical</b></div>
+      <div class="info"><label>Local operator</label><b>Discover Thailand Co., Ltd.</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- AI PLANNER ---------- -->
+<div class="page" id="p-planner">
+  <div class="sec">
+    <div class="sec-head"><div><div class="kick">AI Travel Planner</div><h2>Where would you like to go?</h2></div></div>
+    <div class="planner">
+      <div class="pcard frm">
+        <h3>Tell us about your trip</h3>
+        <label>Destination</label><select id="plDest"><option>Thailand</option><option>Vietnam</option><option>Maldives</option></select>
+        <label>Travel dates</label><input id="plDates" value="12 – 18 Oct 2026">
+        <label>Adults / Children</label>
+        <div style="display:flex;gap:10px"><input id="plAd" value="6" style="flex:1"><input id="plCh" value="0" style="flex:1"></div>
+        <label>Budget per person (USD)</label><input id="plBud" value="750">
+        <label>Hotel preference</label><select id="plHot"><option>4-star</option><option>3-star</option><option>5-star</option><option>Luxury / Pool villa</option></select>
+        <label>Interests</label><input value="Islands, city tour, nightlife, shopping">
+        <label>Dietary preference</label><select><option>Indian / Halal</option><option>Vegetarian</option><option>No preference</option></select>
+        <button class="btn btn-em" style="width:100%;margin-top:16px" onclick="runPlanner()">✦ Generate my itinerary</button>
+      </div>
+      <div class="pcard ai-out" id="plOut">
+        <div class="ai-msg">Your AI-designed journey will appear here.<br><small>Every AI itinerary is reviewed by a human travel expert before your final quote.</small></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- MICE ---------- -->
+<div class="page" id="p-mice">
+  <div class="hero" style="padding:56px 5vw 44px">
+    <div class="kick">MEETINGS · INCENTIVES · CONFERENCES · EVENTS</div>
+    <h1>MICE across Asia, operated end-to-end.</h1>
+    <p>From a 20-pax dealer incentive to a 300-guest annual conference — venue, rooming, transport, gala production and on-site command center under one contract.</p>
+  </div>
+  <div class="sec">
+    <div class="split">
+      <div>
+        <div class="kick" style="letter-spacing:.24em;font-size:11px;color:var(--emerald);font-weight:700">WHAT WE OPERATE</div>
+        <h2 style="font-size:28px;color:var(--navy);margin:8px 0">One team from proposal to gala night</h2>
+        <div class="list-ticks">
+          <div><span class="tick">✓</span> Conference halls, LED walls, sound, lighting, stage &amp; backdrop production</div>
+          <div><span class="tick">✓</span> Rooming lists with automatic SGL / DBL / TWN / TRP summaries</div>
+          <div><span class="tick">✓</span> Airport manifests, vehicle allocation &amp; multilingual guides</div>
+          <div><span class="tick">✓</span> Gala dinners, entertainment, photography &amp; videography</div>
+          <div><span class="tick">✓</span> Live group operations command center with 24/7 escalation</div>
+        </div>
+        <button class="btn btn-em" onclick="alert('Demo: a MICE enquiry form would open here and create a lead in the CRM.')">Request a MICE proposal</button>
+      </div>
+      <div class="pcard">
+        <h3>Recent group movements</h3>
+        <table>
+          <tr><th>Group</th><th>Pax</th><th>Program</th></tr>
+          <tr><td><b>Bangladesh corporate incentive</b></td><td>275</td><td>Bangkok, 2N — 3 airlines</td></tr>
+          <tr><td><b>Qatar dealer loyalty program</b></td><td>32</td><td>Bangkok 3N + Phuket 3N</td></tr>
+          <tr><td><b>Agro-chemicals annual tour</b></td><td>91</td><td>Bangkok + Pattaya, 4N</td></tr>
+          <tr><td><b>European leisure group</b></td><td>18</td><td>Thailand grand tour, 13N</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- B2B ---------- -->
+<div class="page" id="p-b2b">
+  <div class="hero" style="padding:56px 5vw 44px">
+    <div class="kick">B2B PARTNERSHIP</div>
+    <h1>Sell Asia with confidential net rates.</h1>
+    <p>Register your agency, access B2B pricing across 19 destinations, build white-label quotations with your own logo and markup, and settle on agent credit terms.</p>
+    <button class="btn btn-gold" onclick="setEnv('admin')">Open the B2B Agent Portal demo →</button>
+  </div>
+  <div class="sec">
+    <div class="grid g3">
+      <div class="why"><div class="card"><div class="n">01</div><h3>Confidential net rates</h3><p>Hotel, tour and transfer nets across Thailand, Vietnam, Maldives, Japan and more — invisible to your clients.</p></div></div>
+      <div class="why"><div class="card"><div class="n">02</div><h3>White-label quotations</h3><p>Download proposals carrying your logo, your company name and your selling price. Our costs stay hidden.</p></div></div>
+      <div class="why"><div class="card"><div class="n">03</div><h3>Agent credit line</h3><p>Approved partners operate on credit limits with automatic alerts before due dates — e.g. USD 20,000 limit, live balance tracking.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="cols">
+    <div><div class="lg">DISCOVER THE ASIA</div>
+      <p>Asia DMC + B2B Travel Marketplace + MICE + AI Travel Technology.<br>Initial operating base: Thailand — Discover Thailand Co., Ltd., Bangkok.</p></div>
+    <div><h4>Destinations</h4><ul><li>Thailand</li><li>Vietnam</li><li>Maldives</li><li>Japan</li><li>Singapore</li><li>Sri Lanka</li></ul></div>
+    <div><h4>Travel</h4><ul><li>Packages</li><li>AI Trip Planner</li><li>MICE &amp; Corporate</li><li>Multi-Country Journeys</li><li>Luxury Asia</li></ul></div>
+    <div><h4>Partners</h4><ul><li>B2B Agent Portal</li><li>Supplier Portal</li><li>DMC Network</li><li>Affiliates</li></ul></div>
+  </div>
+  <div class="base"><span>© 2026 DiscoverTheAsia.com — One Partner. All of Asia.</span><span>24/7 Hotline · WhatsApp · hello@discovertheasia.com</span></div>
+</footer>
+</div><!-- /site -->
+
+<!-- ============================================================= -->
+<!-- ENVIRONMENT 2 — DMC MANAGEMENT PLATFORM                        -->
+<!-- ============================================================= -->
+<div id="admin">
+<div class="adm-wrap">
+
+  <aside class="sidebar">
+    <div class="lg">DTA <b>COMMAND</b></div>
+    <div class="sgrp">Overview</div>
+    <a class="on" data-v="dash" onclick="goView('dash')">▦ Dashboard</a>
+    <a data-v="analytics" onclick="goView('analytics')">◔ Analytics</a>
+    <div class="sgrp">Sales</div>
+    <a data-v="crm" onclick="goView('crm')">☰ CRM &amp; Leads <span class="dot"></span></a>
+    <a data-v="quote" onclick="goView('quote')">✎ Quotation Builder</a>
+    <a data-v="book" onclick="goView('book')">▤ Bookings</a>
+    <a data-v="agents" onclick="goView('agents')">◈ B2B Agents</a>
+    <div class="sgrp">Operations</div>
+    <a data-v="ops" onclick="goView('ops')">⚑ Group Operations</a>
+    <a data-v="hotels" onclick="goView('hotels')">⌂ Hotels &amp; Rates</a>
+    <a data-v="suppliers" onclick="goView('suppliers')">⇄ Suppliers</a>
+    <div class="sgrp">Finance</div>
+    <a data-v="fin" onclick="goView('fin')">฿ Finance</a>
+    <div class="sgrp">Intelligence</div>
+    <a data-v="ai" onclick="goView('ai')">✦ AI Center</a>
+    <div class="sgrp" style="margin-top:16px">Demo</div>
+    <a onclick="openFlow()" style="color:var(--gold)">▶ End-to-End Workflow</a>
+  </aside>
+
+  <main class="main">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="view on" id="v-dash">
+    <div class="topbar">
+      <h1>Good morning, Bayazid — Discover The Asia Command Center</h1>
+      <div class="search"><span style="color:var(--mut)">⌕</span><input placeholder="Global search — try “Berger”…" onkeydown="if(event.key==='Enter')globalSearch(this.value)"></div>
+      <div class="avatar">BA</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><label>Monthly revenue</label><b>THB 12.8M</b><small class="up">▲ 14.2% vs July</small></div>
+      <div class="kpi"><label>Gross profit</label><b>THB 2.4M</b><small class="up">▲ 18.7% margin</small></div>
+      <div class="kpi"><label>Active bookings</label><b>126</b><small class="up">▲ 11 this week</small></div>
+      <div class="kpi"><label>Travelers this month</label><b>2,840</b><small class="up">▲ 320 vs Aug '25</small></div>
+      <div class="kpi"><label>Arrivals today</label><b>43</b><small style="color:var(--mut)">4 groups · 6 FIT</small></div>
+      <div class="kpi"><label>Outstanding</label><b>THB 3.1M</b><small class="dn">▼ 5 payments due today</small></div>
+    </div>
+
+    <div class="duo">
+      <div class="panel">
+        <h3>Monthly sales — 2026 <span class="rt" onclick="goView('analytics')">Full analytics →</span></h3>
+        <div class="bar-row">
+          <div class="b"><span class="v">7.9</span><div class="stick" style="height:44%"></div><span class="lb">MAR</span></div>
+          <div class="b"><span class="v">8.6</span><div class="stick" style="height:50%"></div><span class="lb">APR</span></div>
+          <div class="b"><span class="v">9.4</span><div class="stick" style="height:56%"></div><span class="lb">MAY</span></div>
+          <div class="b"><span class="v">10.2</span><div class="stick" style="height:62%"></div><span class="lb">JUN</span></div>
+          <div class="b"><span class="v">11.2</span><div class="stick" style="height:72%"></div><span class="lb">JUL</span></div>
+          <div class="b"><span class="v">12.8</span><div class="stick g" style="height:86%"></div><span class="lb">AUG</span></div>
+        </div>
+        <div class="legend"><span><i style="background:var(--emerald)"></i>Revenue (THB M)</span><span><i style="background:var(--gold)"></i>Current month</span></div>
+      </div>
+      <div class="panel">
+        <h3>Revenue by destination</h3>
+        <div class="dwrap">
+          <div class="donut"></div>
+          <div style="flex:1;font-size:12.5px">
+            <div class="calc"><div class="row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--emerald);margin-right:6px"></i>Thailand</span><b>46%</b></div>
+            <div class="row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gold);margin-right:6px"></i>Vietnam</span><b>28%</b></div>
+            <div class="row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--navy3);margin-right:6px"></i>Maldives</span><b>16%</b></div>
+            <div class="row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C4CFDB;margin-right:6px"></i>Others</span><b>10%</b></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="duo">
+      <div class="panel">
+        <h3>Today's arrivals — Thursday 28 Aug 2026</h3>
+        <table>
+          <tr><th>Group / Guest</th><th>Pax</th><th>Flight</th><th>Hotel</th><th>Status</th></tr>
+          <tr><td><b>Bangladesh Corporate Group</b><br><small class="mono">DTA-BKG-2026-000118</small></td><td>85</td><td class="mono">TG322 · 07:25</td><td>Berkeley Pratunam</td><td><span class="st st-em">GUIDES ASSIGNED</span></td></tr>
+          <tr><td><b>India FIT — Sharma family</b><br><small class="mono">DTA-BKG-2026-000121</small></td><td>6</td><td class="mono">AI332 · 12:10</td><td>Amari Watergate</td><td><span class="st st-em">DRIVER CONFIRMED</span></td></tr>
+          <tr><td><b>Qatar Incentive</b><br><small class="mono">DTA-BKG-2026-000119</small></td><td>32</td><td class="mono">QR836 · 13:05</td><td>Pullman G Silom</td><td><span class="st st-am">1 VAN PENDING</span></td></tr>
+          <tr><td><b>European Group (Athens)</b><br><small class="mono">DTA-BKG-2026-000116</small></td><td>18</td><td class="mono">EK384 · 15:40</td><td>Eastin Grand Sathorn</td><td><span class="st st-em">READY</span></td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Attention required</h3>
+        <div class="attn">
+          <div class="crit">⚠ <span><b>1 transport assignment missing</b> — Qatar Incentive, second van BKK→hotel</span></div>
+          <div>⏱ <span><b>3 supplier confirmations pending</b> — Phi Phi speedboat (2), Alcazar VIP block</span></div>
+          <div>฿ <span><b>5 payments due today</b> — THB 486,000 receivable</span></div>
+          <div>✉ <span><b>2 quotations expiring</b> — DTA-QTN-2026-00119, 00122</span></div>
+          <div>◷ <span><b>Contract expires in 30 days</b> — Royal Benja Hotel FIT contract</span></div>
+        </div>
+        <button class="btn btn-gold" style="width:100%;margin-top:14px" onclick="openFlow()">▶ Run the end-to-end demo workflow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ANALYTICS ===== -->
+  <div class="view" id="v-analytics">
+    <div class="topbar"><h1>Analytics &amp; Business Intelligence</h1><div class="avatar">BA</div></div>
+    <div class="kpis">
+      <div class="kpi"><label>Lead conversion</label><b>31.4%</b><small class="up">▲ 2.8 pts</small></div>
+      <div class="kpi"><label>Cancellation rate</label><b>4.1%</b><small class="up">▼ 0.9 pts</small></div>
+      <div class="kpi"><label>Repeat customers</label><b>38%</b><small class="up">▲ 5 pts</small></div>
+      <div class="kpi"><label>Avg. booking value</label><b>THB 214K</b><small class="up">▲ 9%</small></div>
+    </div>
+    <div class="duo">
+      <div class="panel"><h3>Sales by source market</h3>
+        <div style="display:grid;gap:12px;font-size:13px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>Bangladesh</b><span>THB 5.4M</span></div><div class="prog"><i style="width:84%"></i></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>India</b><span>THB 3.7M</span></div><div class="prog"><i style="width:58%"></i></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>Middle East (Qatar / KSA / UAE)</b><span>THB 2.1M</span></div><div class="prog"><i class="g" style="width:33%"></i></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>Europe (Greece / UK)</b><span>THB 1.1M</span></div><div class="prog"><i class="g" style="width:17%"></i></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>Sri Lanka</b><span>THB 0.5M</span></div><div class="prog"><i style="width:8%;background:var(--navy3)"></i></div></div>
+        </div>
+      </div>
+      <div class="panel"><h3>Sales team performance — August</h3>
+        <table>
+          <tr><th>Salesperson</th><th>Leads</th><th>Quotes</th><th>Won</th><th>Revenue</th><th>Conv.</th></tr>
+          <tr><td><b>Rifat</b> · Sales Manager</td><td>34</td><td>26</td><td>12</td><td>THB 4.6M</td><td><span class="st st-em">35%</span></td></tr>
+          <tr><td><b>Nadia</b> · Sales Executive</td><td>28</td><td>22</td><td>9</td><td>THB 3.1M</td><td><span class="st st-em">32%</span></td></tr>
+          <tr><td><b>Sajib</b> · Sales Executive</td><td>25</td><td>17</td><td>7</td><td>THB 2.4M</td><td><span class="st st-am">28%</span></td></tr>
+          <tr><td><b>Tania</b> · Sales Executive</td><td>21</td><td>15</td><td>6</td><td>THB 1.9M</td><td><span class="st st-am">29%</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="panel"><h3>Country performance</h3>
+      <table>
+        <tr><th>Destination</th><th>Bookings</th><th>Travelers</th><th>Revenue</th><th>Gross profit</th><th>Margin</th><th>Trend</th></tr>
+        <tr><td><b>Thailand</b></td><td>74</td><td>1,882</td><td>THB 5.9M</td><td>THB 1.18M</td><td>20.0%</td><td><span class="st st-em">▲ STRONG</span></td></tr>
+        <tr><td><b>Vietnam</b></td><td>28</td><td>512</td><td>THB 3.6M</td><td>THB 0.61M</td><td>17.1%</td><td><span class="st st-em">▲ GROWING</span></td></tr>
+        <tr><td><b>Maldives</b></td><td>13</td><td>96</td><td>THB 2.0M</td><td>THB 0.38M</td><td>18.6%</td><td><span class="st st-am">— STABLE</span></td></tr>
+        <tr><td><b>Japan</b></td><td>7</td><td>210</td><td>THB 0.9M</td><td>THB 0.14M</td><td>15.2%</td><td><span class="st st-bl">◈ NEW</span></td></tr>
+        <tr><td><b>Sri Lanka</b></td><td>4</td><td>140</td><td>THB 0.4M</td><td>THB 0.07M</td><td>16.8%</td><td><span class="st st-bl">◈ NEW</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== CRM ===== -->
+  <div class="view" id="v-crm">
+    <div class="topbar"><h1>CRM — Sales Pipeline</h1>
+      <button class="btn btn-em btn-sm" onclick="openFlow()">+ New lead (demo)</button><div class="avatar">BA</div></div>
+    <div class="kpis">
+      <div class="kpi"><label>New leads this week</label><b>19</b><small class="up">▲ 6</small></div>
+      <div class="kpi"><label>Quotations sent</label><b>14</b><small style="color:var(--mut)">3 expiring</small></div>
+      <div class="kpi"><label>Pipeline value</label><b>THB 9.7M</b><small class="up">▲ 12%</small></div>
+      <div class="kpi"><label>Won this month</label><b>34</b><small class="up">31.4% conversion</small></div>
+    </div>
+    <div class="pipe">
+      <div class="pcol"><h4>New Lead <span>5</span></h4>
+        <div class="lead" onclick="openFlow()"><b>Saudi group · 10 days</b><small>10–15 pax · Jan 2027 · Riyadh agency</small><br><span class="src">WHATSAPP</span></div>
+        <div class="lead"><b>Honeymoon · Samui</b><small>2 adults · Nov · pool villa</small><br><span class="src">WEBSITE</span></div>
+        <div class="lead"><b>Kolkata family · Phuket</b><small>4 adults + 2 children · Dec</small><br><span class="src">REFERRAL</span></div>
+      </div>
+      <div class="pcol"><h4>Requirement <span>4</span></h4>
+        <div class="lead"><b>Dhaka corporate · 60 pax</b><small>Pattaya + Bangkok · Oct 10–13</small><br><span class="src">EXISTING AGENT</span></div>
+        <div class="lead"><b>Sri Lanka ladies' group</b><small>9 pax · Phuket + Bangkok · Oct</small><br><span class="src">FACEBOOK</span></div>
+      </div>
+      <div class="pcol"><h4>Quotation Sent <span>6</span></h4>
+        <div class="lead"><b>Greek group · 18 pax</b><small>13N grand tour · Jan · V2 sent</small><br><span class="src">TRADE FAIR</span></div>
+        <div class="lead"><b>Qatar dealer incentive</b><small>20–30 pax · Sep–Oct 2027</small><br><span class="src">EMAIL</span></div>
+        <div class="lead"><b>Mountain Club · 30 pax</b><small>Phuket 2N + Bangkok 2N</small><br><span class="src">WHATSAPP</span></div>
+      </div>
+      <div class="pcol"><h4>Negotiation <span>3</span></h4>
+        <div class="lead"><b>BPBL · 300± pax</b><small>Multi-group Nov · 2 route options</small><br><span class="src">SALES VISIT</span></div>
+        <div class="lead"><b>Navigator Tours · 25 pax</b><small>Pattaya + Bangkok · Sep/Oct</small><br><span class="src">EXISTING AGENT</span></div>
+      </div>
+      <div class="pcol"><h4>Won <span>34</span></h4>
+        <div class="lead" style="border-color:var(--emerald)"><b>Global Travel Treat · 58 pax</b><small>Pattaya 2N + Bangkok 1N · Oct 10–13</small><br><span class="src">CONVERTED</span></div>
+        <div class="lead" style="border-color:var(--emerald)"><b>Adnan Hussain family</b><small>BKK + Krabi + Phuket · Aug</small><br><span class="src">CONVERTED</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUOTATION BUILDER ===== -->
+  <div class="view" id="v-quote">
+    <div class="topbar"><h1>Quotation Builder</h1>
+      <span class="st st-nv mono">DTA-QTN-2026-00125 · V1</span>
+      <div class="avatar">BA</div></div>
+    <div class="panel" style="display:flex;gap:26px;flex-wrap:wrap;font-size:13px">
+      <div><label style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700">Client</label><br><b>Global Travel Partner Ltd. (B2B)</b></div>
+      <div><label style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700">Destination</label><br><b>Thailand — Bangkok + Pattaya</b></div>
+      <div><label style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700">Dates</label><br><b>12 – 16 Sep 2026 · 5D/4N</b></div>
+      <div><label style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700">Travelers</label><br><b>20 adults</b></div>
+      <div><label style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700">Currency / Validity</label><br><b>USD · valid 14 days</b></div>
+    </div>
+    <div class="qb">
+      <div>
+        <div class="panel">
+          <h3>Itinerary components <span class="rt">Drag-and-drop builder</span></h3>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="2600"><div class="ic">⌂</div><div><b>Berkeley Hotel Pratunam — 2N, Twin BB</b><small>Bangkok · Deluxe · 10 twin rooms · net USD 65/room/night</small></div><div class="amt">USD 2,600</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="2160"><div class="ic">⌂</div><div><b>Sunbeam Pattaya — 2N, Twin BB</b><small>Pattaya · Superior · 10 twin rooms · net USD 54/room/night</small></div><div class="amt">USD 2,160</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="900"><div class="ic">⛵</div><div><b>Coral Island by speedboat + Indian lunch</b><small>Pattaya · SIC · USD 45 × 20 pax</small></div><div class="amt">USD 900</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="700"><div class="ic">🦁</div><div><b>Safari World + Marine Park with lunch</b><small>Bangkok · USD 35 × 20 pax</small></div><div class="amt">USD 700</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="640"><div class="ic">🌉</div><div><b>Chao Phraya Dinner Cruise</b><small>Bangkok · Intl buffet · USD 32 × 20 pax</small></div><div class="amt">USD 640</div></div>
+          <div class="comp"><input type="checkbox" onchange="calcQ()" data-c="440"><div class="ic">✨</div><div><b>Alcazar Cabaret Show — Deluxe seat</b><small>Pattaya · USD 22 × 20 pax · optional</small></div><div class="amt">USD 440</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="1450"><div class="ic">🚌</div><div><b>Transportation — VIP Coach, full program</b><small>BKK Airport→BKK→Pattaya→BKK Airport + tour days</small></div><div class="amt">USD 1,450</div></div>
+          <div class="comp"><input type="checkbox" checked onchange="calcQ()" data-c="520"><div class="ic">🗣</div><div><b>Bengali/Hindi-speaking guide — 4 days</b><small>Licensed · USD 130/day</small></div><div class="amt">USD 520</div></div>
+        </div>
+      </div>
+      <div class="calc">
+        <div class="panel">
+          <h3>Smart pricing engine</h3>
+          <div class="row"><span>Supplier + component cost</span><b id="qNet">USD 8,970</b></div>
+          <div class="row"><span>Operational + handling cost</span><b>USD 380</b></div>
+          <div class="row"><span>Tax provision</span><b id="qTax">USD 187</b></div>
+          <div class="mk"><span style="font-size:13px;color:var(--mut)">Markup</span><input id="qMk" type="number" value="18" onchange="calcQ()" oninput="calcQ()"><span style="font-weight:700">%</span><span class="st st-gy" style="margin-left:auto">B2B PRICE</span></div>
+          <div class="row"><span>Markup amount</span><b id="qMkAmt">USD 1,615</b></div>
+          <div class="row tot"><span>Selling price</span><b id="qSell">USD 11,152</b></div>
+          <div class="row"><span>Per person (20 pax)</span><b id="qPP">USD 558</b></div>
+          <div style="font-size:11.5px;color:var(--mut);margin-top:8px">Internal cost and profit remain invisible to customers and standard agents.</div>
+          <div class="qact">
+            <button class="btn btn-gh btn-sm">Save draft</button>
+            <button class="btn btn-gh btn-sm">Download PDF</button>
+            <button class="btn btn-gh btn-sm">Duplicate → V2</button>
+            <button class="btn btn-em btn-sm" onclick="alert('Demo: quotation sent to agent portal.\nStatus → Quotation Sent · CRM updated.')">Send proposal</button>
+          </div>
+          <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="openFlow()">Convert to booking ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BOOKINGS ===== -->
+  <div class="view" id="v-book">
+    <div class="topbar"><h1>Booking Management</h1>
+      <span class="st st-gy">126 active</span><div class="avatar">BA</div></div>
+    <div class="tabs">
+      <button class="on">All</button><button>Confirmed</button><button>Deposit received</button><button>In operation</button><button>Voucher issued</button><button>Completed</button>
+    </div>
+    <div class="panel">
+      <table>
+        <tr><th>Booking ID</th><th>Client / Agent</th><th>Program</th><th>Travel dates</th><th>Pax</th><th>Value</th><th>Paid</th><th>Status</th></tr>
+        <tr><td class="mono">DTA-BKG-2026-000125</td><td><b>Global Travel Partner</b> · B2B</td><td>Bangkok + Pattaya 5D/4N</td><td>12–16 Sep</td><td>20</td><td>USD 11,152</td><td><div class="prog" style="width:70px"><i style="width:30%"></i></div></td><td><span class="st st-bl">DEPOSIT RECEIVED</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000118</td><td><b>Bangladesh Corporate</b> · Direct</td><td>Bangkok 3D/2N · 85 pax</td><td>28–30 Aug</td><td>85</td><td>USD 38,400</td><td><div class="prog" style="width:70px"><i style="width:100%"></i></div></td><td><span class="st st-em">IN OPERATION</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000119</td><td><b>Qatar Motors Incentive</b> · Corporate</td><td>Bangkok 3N + Phuket 3N</td><td>28 Aug–3 Sep</td><td>32</td><td>USD 41,900</td><td><div class="prog" style="width:70px"><i style="width:100%"></i></div></td><td><span class="st st-em">IN OPERATION</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000121</td><td><b>Sharma Family</b> · B2C</td><td>Bangkok + Phuket 7D/6N</td><td>28 Aug–3 Sep</td><td>6</td><td>USD 4,120</td><td><div class="prog" style="width:70px"><i style="width:100%"></i></div></td><td><span class="st st-em">VOUCHER ISSUED</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000116</td><td><b>Athens Partner Group</b> · B2B</td><td>Thailand grand tour 13N</td><td>28 Aug–10 Sep</td><td>18</td><td>USD 27,300</td><td><div class="prog" style="width:70px"><i style="width:65%"></i></div></td><td><span class="st st-am">SUPPLIER CONF.</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000110</td><td><b>GTT Group</b> · B2B</td><td>Pattaya 2N + Bangkok 1N · 58 pax</td><td>10–13 Oct</td><td>58</td><td>USD 24,700</td><td><div class="prog" style="width:70px"><i class="g" style="width:15%"></i></div></td><td><span class="st st-am">CONFIRMED</span></td></tr>
+        <tr><td class="mono">DTA-BKG-2026-000098</td><td><b>Regency Travel House</b> · B2B</td><td>Phuket 4N/5D · 6 adults</td><td>22–26 Sep</td><td>6</td><td>USD 1,818</td><td><div class="prog" style="width:70px"><i class="r" style="width:0%"></i></div></td><td><span class="st st-rd">PAYMENT PENDING</span></td></tr>
+      </table>
+    </div>
+    <div class="panel"><h3>Booking lifecycle</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;font-weight:700">
+        <span class="st st-gy">NEW LEAD</span>→<span class="st st-gy">QUOTATION</span>→<span class="st st-gy">NEGOTIATION</span>→<span class="st st-am">CONFIRMED</span>→<span class="st st-bl">DEPOSIT</span>→<span class="st st-bl">SUPPLIER CONF.</span>→<span class="st st-bl">FULL PAYMENT</span>→<span class="st st-em">VOUCHER</span>→<span class="st st-em">IN OPERATION</span>→<span class="st st-em">COMPLETED</span>→<span class="st st-nv">CLOSED</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== B2B AGENTS ===== -->
+  <div class="view" id="v-agents">
+    <div class="topbar"><h1>B2B Agent Portal — Management</h1><div class="avatar">BA</div></div>
+    <div class="kpis">
+      <div class="kpi"><label>Active agents</label><b>64</b><small class="up">▲ 4 new this month</small></div>
+      <div class="kpi"><label>Agent revenue (Aug)</label><b>THB 7.9M</b><small class="up">62% of total</small></div>
+      <div class="kpi"><label>Pending applications</label><b>3</b><small style="color:var(--mut)">docs under review</small></div>
+      <div class="kpi"><label>Overdue credit</label><b>USD 6,200</b><small class="dn">2 agents flagged</small></div>
+    </div>
+    <div class="panel">
+      <h3>Agent credit management</h3>
+      <table>
+        <tr><th>Agent</th><th>Market</th><th>Credit limit</th><th>Used</th><th>Available</th><th>Terms</th><th>Status</th></tr>
+        <tr><td><b>Global Travel Partner Ltd.</b></td><td>Bangladesh</td><td>USD 20,000</td><td>USD 12,500</td><td>USD 7,500</td><td>Net 15</td><td><span class="st st-em">GOOD STANDING</span></td></tr>
+        <tr><td><b>Navigator Tours &amp; Travel</b></td><td>Bangladesh</td><td>USD 12,000</td><td>USD 4,300</td><td>USD 7,700</td><td>Net 15</td><td><span class="st st-em">GOOD STANDING</span></td></tr>
+        <tr><td><b>Skylark Tours &amp; Travel</b></td><td>Bangladesh</td><td>USD 8,000</td><td>USD 7,650</td><td>USD 350</td><td>Net 7</td><td><span class="st st-am">NEAR LIMIT</span></td></tr>
+        <tr><td><b>Athens Journeys (Greece)</b></td><td>Greece</td><td>USD 15,000</td><td>USD 9,100</td><td>USD 5,900</td><td>Net 30</td><td><span class="st st-em">GOOD STANDING</span></td></tr>
+        <tr><td><b>Regency Travel House</b></td><td>India</td><td>USD 5,000</td><td>USD 5,000</td><td>USD 0</td><td>Net 7</td><td><span class="st st-rd">OVERDUE 12 DAYS</span></td></tr>
+      </table>
+    </div>
+    <div class="duo">
+      <div class="panel"><h3>Agent portal preview — “Welcome, Global Travel Partner”</h3>
+        <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+          <div class="kpi"><label>Active bookings</label><b>12</b></div>
+          <div class="kpi"><label>Upcoming guests</label><b>85</b></div>
+          <div class="kpi"><label>Pending quotes</label><b>7</b></div>
+          <div class="kpi"><label>Outstanding</label><b>USD 12,400</b></div>
+        </div>
+        <button class="btn btn-em" style="width:100%;margin-top:12px" onclick="goView('quote')">+ CREATE NEW QUOTATION</button>
+      </div>
+      <div class="panel"><h3>White-label quotations</h3>
+        <p style="font-size:13px;color:var(--mut);margin-bottom:12px">Agents download proposals with <b style="color:var(--navy)">their own logo, company name and selling price</b>. Discover The Asia supplier nets and internal costs stay hidden.</p>
+        <div style="border:1.5px dashed var(--line);border-radius:10px;padding:16px;font-size:12.5px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-family:var(--disp);color:var(--navy)">[ AGENT LOGO ]</b><span class="mono">Proposal · GTP-2026-088</span></div>
+          <div>Thailand — Bangkok + Pattaya · 5D/4N · 20 adults</div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span>Selling price per person</span><b style="color:var(--emerald-d)">USD 615</b></div>
+          <div style="color:var(--mut);margin-top:5px;font-size:11px">Agent markup applied over B2B net — net rate not shown.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GROUP OPERATIONS ===== -->
+  <div class="view" id="v-ops">
+    <div class="topbar"><h1>Group Operations Command Center</h1>
+      <span class="st st-nv mono">DTA-BKG-2026-000119 · Qatar Incentive · 32 pax</span><div class="avatar">BA</div></div>
+    <div class="panel">
+      <h3>Service status board — Bangkok 3N + Phuket 3N · 28 Aug – 3 Sep</h3>
+      <div class="svc-grid">
+        <div class="svc"><label>Hotel — Bangkok</label><b>Pullman G Silom · 16 TWN</b><span class="st st-em">CONFIRMED</span></div>
+        <div class="svc"><label>Hotel — Phuket</label><b>Amari Patong · 16 TWN</b><span class="st st-em">CONFIRMED</span></div>
+        <div class="svc"><label>Airport transfer</label><b>2 × VIP Van · QR836</b><span class="st st-rd">1 VAN MISSING</span></div>
+        <div class="svc"><label>Domestic flight</label><b>BKK→HKT · TG203 · 31 Aug</b><span class="st st-em">TICKETED</span></div>
+        <div class="svc"><label>Tours</label><b>City tour · Phi Phi · Dinner cruise</b><span class="st st-am">PHI PHI PENDING</span></div>
+        <div class="svc"><label>Restaurants</label><b>Gala + 4 group dinners (Halal)</b><span class="st st-em">CONFIRMED</span></div>
+        <div class="svc"><label>Guide</label><b>Arabic-speaking · Khalid</b><span class="st st-em">ASSIGNED</span></div>
+        <div class="svc"><label>Gala production</label><b>LED wall · sound · stage</b><span class="st st-em">CONFIRMED</span></div>
+        <div class="svc"><label>Insurance</label><b>Group policy · 32 pax</b><span class="st st-em">ISSUED</span></div>
+        <div class="svc"><label>Client payment</label><b>USD 41,900 · full</b><span class="st st-em">RECEIVED</span></div>
+      </div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>Rooming list — auto summary</h3>
+        <table>
+          <tr><th>#</th><th>Guest</th><th>Passport</th><th>Room</th><th>Sharing with</th><th>Meal</th></tr>
+          <tr><td>01</td><td><b>Al-Marri, Hassan</b></td><td class="mono">Q0****231</td><td>TWN 1201</td><td>Al-Kuwari, F.</td><td>Halal</td></tr>
+          <tr><td>02</td><td><b>Al-Kuwari, Fahad</b></td><td class="mono">Q0****894</td><td>TWN 1201</td><td>Al-Marri, H.</td><td>Halal</td></tr>
+          <tr><td>03</td><td><b>Ahmed, Yousef</b></td><td class="mono">Q0****177</td><td>TWN 1203</td><td>Saleh, O.</td><td>Halal</td></tr>
+          <tr><td colspan="6" style="color:var(--mut)">… 29 more passengers · Excel import/export supported</td></tr>
+        </table>
+        <div class="room-sum">
+          <span><b>0</b>SGL</span><span><b>0</b>DBL</span><span><b>16</b>TWN</span><span><b>0</b>TRP</span><span><b>1</b>Guide room</span><span><b>1</b>FOC</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Flight manifest &amp; driver job sheet</h3>
+        <table>
+          <tr><th>Flight</th><th>Arr.</th><th>Pax</th><th>Vehicle</th><th>Driver</th></tr>
+          <tr><td class="mono">QR836 DOH→BKK</td><td>13:05</td><td>32</td><td>VIP Van ฮข-4471</td><td><b>Somchai</b> · ✆ +66 8x</td></tr>
+          <tr><td class="mono">QR836 DOH→BKK</td><td>13:05</td><td>—</td><td><span class="st st-rd">ASSIGN VAN 2</span></td><td>—</td></tr>
+          <tr><td class="mono">TG203 BKK→HKT</td><td>10:40</td><td>32</td><td>Coach 40-1188</td><td><b>Prasit</b> · ✆ +66 9x</td></tr>
+        </table>
+        <div class="attn" style="margin-top:12px">
+          <div class="crit">⚠ <span><b>Vehicle allocation missing</b> — second airport van for 32 pax split. Assign before 11:00.</span></div>
+        </div>
+        <button class="btn btn-em btn-sm" style="margin-top:10px" onclick="this.previousElementSibling.querySelector('div').outerHTML='<div style=\'display:flex;gap:10px;align-items:center;background:var(--emerald-l);border-left:3px solid var(--emerald);padding:9px 12px;border-radius:6px;font-size:13px\'>✓ <span><b>Van 2 assigned</b> — Commuter Van ฮค-2205 · Driver Anan · job sheet sent by app</span></div>';this.remove()">Assign Van 2 → Anan (available)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HOTELS ===== -->
+  <div class="view" id="v-hotels">
+    <div class="topbar"><h1>Hotels &amp; Rate Contracts</h1>
+      <button class="btn btn-em btn-sm" onclick="goView('ai')">✦ AI rate reader</button><div class="avatar">BA</div></div>
+    <div class="panel">
+      <table>
+        <tr><th>Hotel</th><th>City</th><th>★</th><th>Contract validity</th><th>TWN net / night</th><th>Meal plan</th><th>Blackouts</th><th>Status</th></tr>
+        <tr><td><b>Berkeley Hotel Pratunam</b></td><td>Bangkok</td><td>4★</td><td>01 Apr 26 – 31 Mar 27</td><td>THB 2,300</td><td>BB</td><td>30 Dec – 2 Jan</td><td><span class="st st-em">ACTIVE</span></td></tr>
+        <tr><td><b>Amari Watergate</b></td><td>Bangkok</td><td>5★</td><td>01 May 26 – 30 Apr 27</td><td>THB 3,400</td><td>BB</td><td>None</td><td><span class="st st-em">ACTIVE</span></td></tr>
+        <tr><td><b>Royal Benja</b></td><td>Bangkok</td><td>4★</td><td>expires 27 Sep 26</td><td>THB 1,950</td><td>BB</td><td>None</td><td><span class="st st-am">EXPIRES IN 30 DAYS</span></td></tr>
+        <tr><td><b>Sunbeam Pattaya</b></td><td>Pattaya</td><td>4★</td><td>01 Apr 26 – 31 Mar 27</td><td>THB 1,900</td><td>BB</td><td>Songkran wk</td><td><span class="st st-em">ACTIVE</span></td></tr>
+        <tr><td><b>Amari Patong</b></td><td>Phuket</td><td>4★</td><td>01 Nov 25 – 31 Oct 26</td><td>THB 2,850</td><td>BB</td><td>24 Dec – 5 Jan</td><td><span class="st st-em">ACTIVE</span></td></tr>
+        <tr><td><b>Nora Buri Resort</b></td><td>Koh Samui</td><td>4★</td><td>01 May 26 – 30 Apr 27</td><td>THB 3,100</td><td>BB</td><td>None</td><td><span class="st st-em">ACTIVE</span></td></tr>
+      </table>
+    </div>
+    <div class="duo">
+      <div class="panel"><h3>Room types &amp; rate structure</h3>
+        <p style="font-size:13px;color:var(--mut)">Each contract stores single / double / twin / triple rates, child &amp; extra-bed policy, early check-in / late checkout, source-market restriction and cancellation policy. Standard · Superior · Deluxe · Executive · Suite · Family.</p>
+      </div>
+      <div class="panel"><h3>Contract alerts</h3>
+        <div class="attn">
+          <div>◷ <span><b>Royal Benja</b> FIT contract expires in 30 days — renewal task assigned to Contracting.</span></div>
+          <div>◷ <span><b>Amari Patong</b> group allotment (Oct) releases in 14 days — 12 rooms unconfirmed.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUPPLIERS ===== -->
+  <div class="view" id="v-suppliers">
+    <div class="topbar"><h1>Supplier Network &amp; Portal</h1><div class="avatar">BA</div></div>
+    <div class="kpis">
+      <div class="kpi"><label>Active suppliers</label><b>212</b><small style="color:var(--mut)">hotels · transport · tours · F&amp;B</small></div>
+      <div class="kpi"><label>New requests today</label><b>9</b><small class="up">6 accepted</small></div>
+      <div class="kpi"><label>Pending confirmations</label><b>3</b><small class="dn">1 urgent</small></div>
+      <div class="kpi"><label>Supplier payables</label><b>THB 2.6M</b><small style="color:var(--mut)">4 due this week</small></div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>Confirmation queue</h3>
+        <table>
+          <tr><th>Supplier</th><th>Service</th><th>Booking</th><th>Response</th></tr>
+          <tr><td><b>Andaman Speedboat Co.</b></td><td>Phi Phi SIC · 32 pax · 1 Sep</td><td class="mono">…000119</td><td><span class="st st-am">AWAITING</span></td></tr>
+          <tr><td><b>Alcazar Pattaya</b></td><td>VIP block · 58 seats · 11 Oct</td><td class="mono">…000110</td><td><span class="st st-am">AWAITING</span></td></tr>
+          <tr><td><b>Safari World</b></td><td>Group entry + lunch · 20 pax</td><td class="mono">…000125</td><td><span class="st st-em">ACCEPTED</span></td></tr>
+          <tr><td><b>Siam Coach Lines</b></td><td>VIP coach · 5 days</td><td class="mono">…000125</td><td><span class="st st-em">ACCEPTED</span></td></tr>
+        </table>
+        <p style="font-size:12px;color:var(--mut);margin-top:8px">Supplier accept / reject / modify responses update internal booking status automatically.</p>
+      </div>
+      <div class="panel">
+        <h3>Supplier scorecard — quality control</h3>
+        <table>
+          <tr><th>Supplier</th><th>Response</th><th>Reliability</th><th>Complaints</th><th>Score</th></tr>
+          <tr><td><b>Siam Coach Lines</b></td><td>0.6 h</td><td>99.2%</td><td>0.4%</td><td><span class="st st-em">A · 9.4</span></td></tr>
+          <tr><td><b>Andaman Speedboat</b></td><td>3.1 h</td><td>97.5%</td><td>1.1%</td><td><span class="st st-em">A · 8.8</span></td></tr>
+          <tr><td><b>Lotus Indian Kitchen</b></td><td>1.8 h</td><td>98.9%</td><td>0.7%</td><td><span class="st st-em">A · 9.0</span></td></tr>
+          <tr><td><b>Bay Transfer Phuket</b></td><td>7.9 h</td><td>91.2%</td><td>4.8%</td><td><span class="st st-rd">C · 5.9 — FLAGGED</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINANCE ===== -->
+  <div class="view" id="v-fin">
+    <div class="topbar"><h1>Finance</h1>
+      <span class="st st-gy">Multi-currency: THB · USD · BDT · INR · AED · EUR</span><div class="avatar">BA</div></div>
+    <div class="kpis">
+      <div class="kpi"><label>Revenue (Aug)</label><b>THB 12.8M</b><small class="up">▲ 14.2%</small></div>
+      <div class="kpi"><label>Supplier cost</label><b>THB 10.4M</b><small style="color:var(--mut)">81.3% of revenue</small></div>
+      <div class="kpi"><label>Gross profit</label><b>THB 2.4M</b><small class="up">18.7% margin</small></div>
+      <div class="kpi"><label>Received</label><b>THB 9.7M</b><small style="color:var(--mut)">75.8%</small></div>
+      <div class="kpi"><label>Outstanding</label><b>THB 3.1M</b><small class="dn">THB 0.4M overdue</small></div>
+      <div class="kpi"><label>Payables</label><b>THB 2.6M</b><small style="color:var(--mut)">2 urgent</small></div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>Receivables — aging</h3>
+        <table>
+          <tr><th>Client / Agent</th><th>Invoice</th><th>Due</th><th>Amount</th><th>Aging</th></tr>
+          <tr><td><b>GTT Group</b></td><td class="mono">DTA-INV-2026-000131</td><td>15 Sep</td><td>USD 21,000</td><td><span class="st st-em">0–30</span></td></tr>
+          <tr><td><b>Global Travel Partner</b></td><td class="mono">DTA-INV-2026-000125</td><td>05 Sep</td><td>USD 7,800</td><td><span class="st st-em">0–30</span></td></tr>
+          <tr><td><b>Skylark Tours</b></td><td class="mono">DTA-INV-2026-000117</td><td>18 Aug</td><td>USD 3,400</td><td><span class="st st-am">31–60</span></td></tr>
+          <tr><td><b>Regency Travel House</b></td><td class="mono">DTA-INV-2026-000102</td><td>16 Aug</td><td>USD 1,818</td><td><span class="st st-rd">OVERDUE</span></td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Payables — supplier payments</h3>
+        <table>
+          <tr><th>Supplier</th><th>Voucher</th><th>Amount</th><th>Status</th></tr>
+          <tr><td><b>Pullman G Silom</b></td><td class="mono">DTA-SPV-2026-00088</td><td>THB 486,000</td><td><span class="st st-rd">URGENT</span></td></tr>
+          <tr><td><b>Siam Coach Lines</b></td><td class="mono">DTA-SPV-2026-00089</td><td>THB 128,500</td><td><span class="st st-am">DUE SOON</span></td></tr>
+          <tr><td><b>Andaman Speedboat</b></td><td class="mono">DTA-SPV-2026-00090</td><td>THB 74,200</td><td><span class="st st-gy">NOT DUE</span></td></tr>
+          <tr><td><b>Alcazar Pattaya</b></td><td class="mono">DTA-SPV-2026-00084</td><td>THB 51,000</td><td><span class="st st-em">PAID</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Group profitability — live</h3>
+      <table>
+        <tr><th>Booking</th><th>Revenue</th><th>Hotel</th><th>Transport</th><th>Tours</th><th>Meals</th><th>Guide/Event</th><th>Total cost</th><th>Profit</th><th>Margin</th></tr>
+        <tr><td class="mono">…000119 Qatar</td><td>THB 1.47M</td><td>0.62M</td><td>0.14M</td><td>0.19M</td><td>0.11M</td><td>0.13M</td><td>THB 1.19M</td><td><b style="color:var(--emerald-d)">THB 280K</b></td><td><span class="st st-em">19.0%</span></td></tr>
+        <tr><td class="mono">…000118 BD Corp</td><td>THB 1.35M</td><td>0.58M</td><td>0.17M</td><td>0.16M</td><td>0.14M</td><td>0.06M</td><td>THB 1.11M</td><td><b style="color:var(--emerald-d)">THB 240K</b></td><td><span class="st st-em">17.8%</span></td></tr>
+        <tr><td class="mono">…000125 GTP 20 pax</td><td>USD 11,152</td><td>4,760</td><td>1,450</td><td>2,240</td><td>640</td><td>900</td><td>USD 9,990</td><td><b style="color:var(--emerald-d)">USD 1,162</b></td><td><span class="st st-em">10.4%*</span></td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--mut);margin-top:8px">Profitability updates in real time as supplier costs and client payments post. *B2B net margin before volume rebates.</p>
+    </div>
+  </div>
+
+  <!-- ===== AI CENTER ===== -->
+  <div class="view" id="v-ai">
+    <div class="topbar"><h1>AI Center</h1>
+      <span class="st st-gy">Human approval mandatory on all commercial outputs</span><div class="avatar">BA</div></div>
+    <div class="duo">
+      <div class="panel">
+        <h3>✦ AI Sales Assistant — requirement extraction</h3>
+        <div class="ai-chat">
+          <div class="q">“Need Thailand package 5 nights for 20 pax in September, 4-star hotel, Bangkok and Pattaya.”<br><small style="opacity:.7">— WhatsApp · Global Travel Partner</small></div>
+          <div class="a">Structured requirement extracted:
+            <table><tr><td>Destination</td><td><b>Thailand</b></td></tr><tr><td>Pax</td><td><b>20</b></td></tr><tr><td>Duration</td><td><b>5 nights</b></td></tr><tr><td>Hotel</td><td><b>4-star</b></td></tr><tr><td>Cities</td><td><b>Bangkok + Pattaya</b></td></tr><tr><td>Month</td><td><b>September</b></td></tr></table>
+            → CRM opportunity created · assigned to Rifat</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>✦ AI Operations Assistant</h3>
+        <div class="ai-chat">
+          <div class="q">“What groups arrive tomorrow?”</div>
+          <div class="a"><b>2 groups · 1 FIT — Fri 29 Aug</b><br>• Mountain Club — 30 pax · UL404 09:15 → HKT · Coach ready<br>• Skylark family — 3 pax · TG340 · Samui via BKK<br>• <b>Pending:</b> Mountain Club guide unconfirmed</div>
+          <div class="q">“Which September groups still have unpaid suppliers?”</div>
+          <div class="a">1 exception — <b>…000116 Athens Group</b>: Pullman G Silom THB 486,000 flagged URGENT in payables.</div>
+        </div>
+      </div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>✦ AI Supplier Rate Reader</h3>
+        <p style="font-size:13px;color:var(--mut);margin-bottom:10px">Uploaded: <b style="color:var(--navy)">Amari_Patong_Contract_2026-27.pdf</b> → extracted, awaiting approval:</p>
+        <table>
+          <tr><th>Field</th><th>Extracted value</th></tr>
+          <tr><td>Hotel</td><td><b>Amari Phuket (Patong)</b></td></tr>
+          <tr><td>Room / plan</td><td><b>Superior Twin · BB</b></td></tr>
+          <tr><td>Validity</td><td><b>01 Nov 2026 – 31 Oct 2027</b></td></tr>
+          <tr><td>Twin net</td><td><b>THB 2,950 / room / night</b></td></tr>
+          <tr><td>Child policy</td><td><b>0–11 free w/o bed · extra bed THB 1,100</b></td></tr>
+          <tr><td>Blackout</td><td><b>24 Dec – 5 Jan</b></td></tr>
+        </table>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-em btn-sm" onclick="this.parentElement.innerHTML='<span class=\'st st-em\'>✓ APPROVED — rate is now bookable · audit log updated</span>'">Approve → make bookable</button>
+          <button class="btn btn-gh btn-sm">Edit fields</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>✦ AI Quotation Assistant</h3>
+        <p style="font-size:13px;color:var(--mut)">Reads the extracted requirement and drafts a full quotation — hotels, tours, transport, routing and pricing template — for salesperson review.</p>
+        <div style="background:var(--soft);border-radius:10px;padding:14px;margin-top:10px;font-size:13px">
+          <b style="color:var(--navy)">Draft ready:</b> Bangkok 2N (Berkeley) + Pattaya 2N (Sunbeam) · Coral Island · Safari World · Dinner Cruise · VIP coach · est. USD 558 pp @18% markup.
+        </div>
+        <button class="btn btn-em" style="width:100%;margin-top:12px" onclick="goView('quote')">Open draft in Quotation Builder →</button>
+      </div>
+    </div>
+  </div>
+
+  </main>
+</div>
+</div><!-- /admin -->
+
+<!-- ============ PACKAGE MODAL ============ -->
+<div class="mask" id="pkgMask" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <div class="mh"><h2>Bangkok &amp; Pattaya Classic — 5 Days / 4 Nights</h2><button class="x" onclick="document.getElementById('pkgMask').classList.remove('on')">✕</button></div>
+    <div class="mb">
+      <div class="route-pills"><span>Bangkok 2N</span><span>Pattaya 2N</span><span>4★ hotels · BB</span><span>Min 2 pax</span></div>
+      <div class="itin-day"><div class="dnum">D1</div><div><h4>Bangkok Airport → Pattaya</h4><p>Private transfer, hotel check-in, evening Alcazar Cabaret Show.</p></div></div>
+      <div class="itin-day"><div class="dnum">D2</div><div><h4>Coral Island</h4><p>Speedboat to Koh Larn, Indian lunch, afternoon Pattaya city tour.</p></div></div>
+      <div class="itin-day"><div class="dnum">D3</div><div><h4>Pattaya → Bangkok</h4><p>Safari World + Marine Park with lunch en route, Bangkok hotel check-in.</p></div></div>
+      <div class="itin-day"><div class="dnum">D4</div><div><h4>Bangkok City Tour</h4><p>Grand Palace &amp; temples, evening Chao Phraya Dinner Cruise.</p></div></div>
+      <div class="itin-day" style="border-bottom:none"><div class="dnum">D5</div><div><h4>Departure</h4><p>Hotel → Bangkok Airport private transfer.</p></div></div>
+      <div class="est"><div><small style="color:var(--mut);font-weight:700;letter-spacing:.08em;font-size:11px">FROM, PER PERSON (TWIN SHARE)</small><br><b>USD 295</b></div>
+      <div style="display:flex;gap:10px"><button class="btn btn-gh" onclick="document.getElementById('pkgMask').classList.remove('on');goPage('planner')">Customize</button><button class="btn btn-em" onclick="alert('Demo: a quotation request is created and appears as a New Lead in the CRM.')">Request final quote</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORKFLOW MODAL ============ -->
+<div class="mask" id="flowMask" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <div class="mh"><h2>End-to-End Commercial Engine</h2>
+      <span class="st st-gy" style="font-size:10.5px">REQUEST → QUOTE → CUSTOMIZE → CONFIRM → OPERATE → RECONCILE</span>
+      <button class="x" onclick="document.getElementById('flowMask').classList.remove('on')">✕</button></div>
+    <div class="mb">
+      <div style="display:flex;gap:10px;margin-bottom:20px">
+        <button class="btn btn-em btn-sm" id="flowNext" onclick="flowNext()">Next step ▶</button>
+        <button class="btn btn-gh btn-sm" onclick="flowReset()">Restart</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--mut);align-self:center" id="flowCount">Step 1 of 12</span>
+      </div>
+      <div class="flow-steps" id="flowSteps">
+        <div class="fstep"><div class="rail"><div class="nd">1</div><div class="ln"></div></div><div class="fc"><h4>New enquiry received</h4><p>WhatsApp message from Global Travel Partner Ltd.</p><div class="detail">“Need Thailand package 5 nights for 20 pax in September, 4-star hotel, Bangkok and Pattaya.”</div></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">2</div><div class="ln"></div></div><div class="fc"><h4>AI reads the requirement</h4><p>Structured extraction → CRM opportunity created, assigned to Rifat.</p><div class="detail"><div class="kv"><span>Destination</span><b>Thailand · Bangkok + Pattaya</b></div><div class="kv"><span>Pax / Duration</span><b>20 adults · 5 nights</b></div><div class="kv"><span>Hotel / Month</span><b>4★ · September</b></div></div></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">3</div><div class="ln"></div></div><div class="fc"><h4>Itinerary created</h4><p>AI drafts BKK 2N + Pattaya 2N routing; sales reviews in the builder.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">4</div><div class="ln"></div></div><div class="fc"><h4>Hotels, tours &amp; transport selected</h4><p>Berkeley Pratunam + Sunbeam · Coral Island · Safari World · Dinner Cruise · VIP coach · Bengali guide.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">5</div><div class="ln"></div></div><div class="fc"><h4>System calculates cost + markup applied</h4><p>Smart pricing engine builds the selling price.</p><div class="detail"><div class="kv"><span>Net + operational + tax</span><b>USD 9,537</b></div><div class="kv"><span>Markup 18% (B2B tier)</span><b>USD 1,615</b></div><div class="kv"><span>Selling price</span><b>USD 11,152 · USD 558 pp</b></div></div></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">6</div><div class="ln"></div></div><div class="fc"><h4>Quotation generated &amp; sent</h4><p class="mono">DTA-QTN-2026-00125 · V1 · PDF to agent portal · valid 14 days.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">7</div><div class="ln"></div></div><div class="fc"><h4>Customer approves → converted to booking</h4><p class="mono">DTA-BKG-2026-000125 · status CONFIRMED · deposit invoice DTA-INV-2026-000125 issued.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">8</div><div class="ln"></div></div><div class="fc"><h4>Supplier confirmations</h4><p>Requests sent from supplier portal; hotels &amp; coach accepted, tour vendors confirmed.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">9</div><div class="ln"></div></div><div class="fc"><h4>Payment received</h4><p>30% deposit via bank transfer → balance schedule tracked; agent credit updated.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">10</div><div class="ln"></div></div><div class="fc"><h4>Rooming list, transport &amp; guide assigned</h4><p>10 TWN auto-summarized from Excel import · coach + driver + guide on job sheets.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">11</div><div class="ln"></div></div><div class="fc"><h4>Vouchers issued → tour operates</h4><p>Hotel, tour &amp; transport vouchers with QR verification · live status in the command center.</p></div></div>
+        <div class="fstep"><div class="rail"><div class="nd">12</div></div><div class="fc"><h4>Reconciled — final profit posted</h4><p>Supplier invoices matched, group P&amp;L closed, review request sent to guests.</p><div class="detail"><div class="kv"><span>Revenue</span><b>USD 11,152</b></div><div class="kv"><span>Total cost</span><b>USD 9,990</b></div><div class="kv"><span>Gross profit</span><b style="color:var(--emerald-d)">USD 1,162 · booking closed ✓</b></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---- environment switch ---- */
+function setEnv(e){
+  document.getElementById('site').style.display = e==='site'?'block':'none';
+  document.getElementById('admin').style.display = e==='admin'?'block':'none';
+  document.getElementById('swSite').classList.toggle('on',e==='site');
+  document.getElementById('swAdmin').classList.toggle('on',e==='admin');
+  window.scrollTo(0,0);
+}
+/* ---- customer pages ---- */
+function goPage(p){
+  document.querySelectorAll('#site .page').forEach(x=>x.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('on');
+  document.querySelectorAll('.nav .links span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+  window.scrollTo(0,0);
+}
+/* ---- admin views ---- */
+function goView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.getElementById('v-'+v).classList.add('on');
+  document.querySelectorAll('.sidebar a[data-v]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));
+  window.scrollTo(0,0);
+}
+/* ---- global search demo ---- */
+function globalSearch(q){
+  if(!q)return;
+  alert('Global search: “'+q+'”\n\nResults across the platform:\n• 1 booking — DTA-BKG-2026-000118 (85 pax, Bangkok)\n• 2 quotations — DTA-QTN-2026-00097, 00104\n• 3 invoices · 1 rooming list · 6 documents\n\n(One search returns bookings, agents, customers, suppliers, quotations, invoices and passengers.)');
+}
+/* ---- package modal ---- */
+function openPkg(){document.getElementById('pkgMask').classList.add('on')}
+/* ---- AI planner ---- */
+function runPlanner(){
+  const ad=document.getElementById('plAd').value||6, bud=document.getElementById('plBud').value||750,
+        hot=document.getElementById('plHot').value, out=document.getElementById('plOut');
+  out.innerHTML='<div class="ai-msg">✦ Designing your journey…</div>';
+  setTimeout(()=>{
+    out.innerHTML=`
+      <h3 style="color:var(--navy);font-size:20px">Thailand Journey — 7 Days / 6 Nights</h3>
+      <div class="route-pills"><span>Bangkok · 2N</span><span>Pattaya · 2N</span><span>Phuket · 2N</span><span>${hot} hotels</span><span>${ad} adults</span></div>
+      <div class="itin-day"><div class="dnum">D1</div><div><h4>Arrive Bangkok</h4><p>Private airport transfer · evening Chao Phraya Dinner Cruise.</p></div></div>
+      <div class="itin-day"><div class="dnum">D2</div><div><h4>Bangkok City Tour</h4><p>Grand Palace, temples &amp; Mahanakhon SkyWalk · Indian dinner.</p></div></div>
+      <div class="itin-day"><div class="dnum">D3</div><div><h4>Bangkok → Pattaya</h4><p>Safari World en route · check-in · Alcazar Cabaret Show.</p></div></div>
+      <div class="itin-day"><div class="dnum">D4</div><div><h4>Coral Island</h4><p>Speedboat day trip with lunch · free evening at Walking Street.</p></div></div>
+      <div class="itin-day"><div class="dnum">D5</div><div><h4>Fly to Phuket</h4><p>Pattaya → BKK → HKT · Patong check-in · sunset at Karon viewpoint.</p></div></div>
+      <div class="itin-day" style="border-bottom:none"><div class="dnum">D6</div><div><h4>Phi Phi Islands</h4><p>Speedboat tour with lunch · D7 departure transfer to HKT airport.</p></div></div>
+      <div class="est"><div><small style="color:var(--mut);font-weight:700;letter-spacing:.08em;font-size:11px">ESTIMATED FROM, PER PERSON</small><br><b>USD ${Math.max(395,Math.round(bud*0.966))}</b></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-gh btn-sm">Customize</button><button class="btn btn-em btn-sm" onclick="alert('Demo: request sent — a travel expert reviews the AI itinerary and issues your final quotation.')">Request final quote</button><button class="btn btn-gold btn-sm">Talk to an expert</button></div></div>
+      <p style="font-size:12px;color:var(--mut);margin-top:10px">AI draft — a human travel expert reviews routing, hotels and pricing before your final quotation is issued.</p>`;
+  },900);
+}
+/* ---- quotation calculator ---- */
+function calcQ(){
+  let net=0;
+  document.querySelectorAll('#v-quote .comp input[type=checkbox]').forEach(c=>{if(c.checked)net+=+c.dataset.c});
+  const ops=380, tax=Math.round(net*0.0208), mk=+(document.getElementById('qMk').value||0),
+        base=net+ops+tax, mkAmt=Math.round(base*mk/100), sell=base+mkAmt;
+  const f=n=>'USD '+n.toLocaleString('en-US');
+  document.getElementById('qNet').textContent=f(net);
+  document.getElementById('qTax').textContent=f(tax);
+  document.getElementById('qMkAmt').textContent=f(mkAmt);
+  document.getElementById('qSell').textContent=f(sell);
+  document.getElementById('qPP').textContent=f(Math.round(sell/20));
+}
+/* ---- workflow stepper ---- */
+let fi=0;
+function openFlow(){setEnv('admin');document.getElementById('flowMask').classList.add('on');flowReset()}
+function flowRender(){
+  const steps=document.querySelectorAll('#flowSteps .fstep');
+  steps.forEach((s,i)=>{s.classList.toggle('done',i<fi);s.classList.toggle('now',i===fi)});
+  document.getElementById('flowCount').textContent= fi<steps.length ? 'Step '+(fi+1)+' of '+steps.length : 'Workflow complete';
+  document.getElementById('flowNext').textContent= fi>=steps.length-1 ? (fi>=steps.length?'✓ Done':'Finish ✓') : 'Next step ▶';
+  if(fi>0) steps[Math.min(fi,steps.length-1)].scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function flowNext(){const n=document.querySelectorAll('#flowSteps .fstep').length; if(fi<n){fi++;flowRender()}}
+function flowReset(){fi=0;flowRender()}
+calcQ();
+</script>
+</body>
+</html>
